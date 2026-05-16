@@ -1,0 +1,594 @@
+package com.example.inventario.ui.login
+
+import android.app.Application
+import android.widget.Toast
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+
+import androidx.navigation.NavController
+
+import com.example.inventario.viewModel.UsuarioViewModel
+
+import kotlinx.coroutines.launch
+
+@Composable
+fun LoginScreen(
+
+    navController: NavController
+
+) {
+
+    val context = LocalContext.current
+
+    val scope = rememberCoroutineScope()
+
+    val viewModel: UsuarioViewModel = viewModel(
+
+        factory = ViewModelProvider.AndroidViewModelFactory
+            .getInstance(
+                context.applicationContext as Application
+            )
+    )
+
+    var isLogin by remember {
+
+        mutableStateOf(true)
+    }
+
+    var usuario by remember {
+
+        mutableStateOf("")
+    }
+
+    var password by remember {
+
+        mutableStateOf("")
+    }
+
+    var confirmPassword by remember {
+
+        mutableStateOf("")
+    }
+
+    Scaffold(
+
+        containerColor =
+            MaterialTheme.colorScheme.background
+
+    ) { innerPadding ->
+
+        Surface(
+
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+
+            color = MaterialTheme.colorScheme.background
+
+        ) {
+
+            Box(
+
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        MaterialTheme.colorScheme.background
+                    ),
+
+                contentAlignment = Alignment.Center
+
+            ) {
+
+                Card(
+
+                    shape = RoundedCornerShape(20.dp),
+
+                    modifier = Modifier
+                        .padding(20.dp)
+                        .fillMaxWidth(),
+
+                    colors = CardDefaults.cardColors(
+
+                        containerColor =
+                            MaterialTheme.colorScheme.surface
+                    )
+
+                ) {
+
+                    Column(
+
+                        modifier = Modifier.padding(20.dp),
+
+                        horizontalAlignment =
+                            Alignment.CenterHorizontally,
+
+                        verticalArrangement =
+                            Arrangement.Center
+
+                    ) {
+
+                        // =========================
+                        // ICONO
+                        // =========================
+
+                        Box(
+
+                            modifier = Modifier
+                                .size(70.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    MaterialTheme.colorScheme.primary
+                                ),
+
+                            contentAlignment = Alignment.Center
+
+                        ) {
+
+                            Icon(
+
+                                imageVector = Icons.Default.Home,
+
+                                contentDescription = null,
+
+                                tint =
+                                    MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+
+                        Spacer(
+                            modifier = Modifier.height(10.dp)
+                        )
+
+                        // =========================
+                        // TITULO
+                        // =========================
+
+                        Text(
+
+                            text = "Sistema de Inventario",
+
+                            fontWeight = FontWeight.Bold,
+
+                            fontSize = 20.sp,
+
+                            color =
+                                MaterialTheme.colorScheme.onBackground
+                        )
+
+                        Text(
+
+                            text = "Gestión de Bodegas",
+
+                            fontSize = 12.sp,
+
+                            color =
+                                MaterialTheme.colorScheme.onBackground
+                        )
+
+                        Spacer(
+                            modifier = Modifier.height(16.dp)
+                        )
+
+                        // =========================
+                        // LOGIN / REGISTRO
+                        // =========================
+
+                        Row(
+
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+
+                                    MaterialTheme.colorScheme.background,
+
+                                    RoundedCornerShape(50.dp)
+                                )
+                                .padding(4.dp)
+                        ) {
+
+                            Button(
+
+                                onClick = {
+
+                                    isLogin = true
+                                },
+
+                                colors = ButtonDefaults.buttonColors(
+
+                                    containerColor = if (isLogin)
+
+                                        MaterialTheme.colorScheme.primary
+
+                                    else
+
+                                        MaterialTheme.colorScheme.surface
+                                ),
+
+                                shape = RoundedCornerShape(50.dp),
+
+                                modifier = Modifier.weight(1f)
+
+                            ) {
+
+                                Text(
+
+                                    text = "Iniciar Sesión",
+
+                                    color = if (isLogin)
+
+                                        MaterialTheme.colorScheme.onPrimary
+
+                                    else
+
+                                        MaterialTheme.colorScheme.onBackground
+                                )
+                            }
+
+                            Button(
+
+                                onClick = {
+
+                                    isLogin = false
+                                },
+
+                                colors = ButtonDefaults.buttonColors(
+
+                                    containerColor = if (!isLogin)
+
+                                        MaterialTheme.colorScheme.primary
+
+                                    else
+
+                                        MaterialTheme.colorScheme.surface
+                                ),
+
+                                shape = RoundedCornerShape(50.dp),
+
+                                modifier = Modifier.weight(1f)
+
+                            ) {
+
+                                Text(
+
+                                    text = "Crear Usuario",
+
+                                    color = if (!isLogin)
+
+                                        MaterialTheme.colorScheme.onPrimary
+
+                                    else
+
+                                        MaterialTheme.colorScheme.onBackground
+                                )
+                            }
+                        }
+
+                        Spacer(
+                            modifier = Modifier.height(16.dp)
+                        )
+
+                        // =========================
+                        // USUARIO
+                        // =========================
+
+                        OutlinedTextField(
+
+                            value = usuario,
+
+                            onValueChange = {
+
+                                usuario = it
+                            },
+
+                            label = {
+
+                                Text("Usuario")
+                            },
+
+                            modifier = Modifier.fillMaxWidth(),
+
+                            colors = OutlinedTextFieldDefaults.colors(
+
+                                focusedBorderColor =
+                                    MaterialTheme.colorScheme.primary,
+
+                                focusedLabelColor =
+                                    MaterialTheme.colorScheme.primary
+                            ),
+
+                            shape = RoundedCornerShape(12.dp)
+                        )
+
+                        Spacer(
+                            modifier = Modifier.height(10.dp)
+                        )
+
+                        // =========================
+                        // PASSWORD
+                        // =========================
+
+                        OutlinedTextField(
+
+                            value = password,
+
+                            onValueChange = {
+
+                                password = it
+                            },
+
+                            label = {
+
+                                Text("Contraseña")
+                            },
+
+                            modifier = Modifier.fillMaxWidth(),
+
+                            colors = OutlinedTextFieldDefaults.colors(
+
+                                focusedBorderColor =
+                                    MaterialTheme.colorScheme.primary,
+
+                                focusedLabelColor =
+                                    MaterialTheme.colorScheme.primary
+                            ),
+
+                            shape = RoundedCornerShape(12.dp)
+                        )
+
+                        // =========================
+                        // CONFIRMAR PASSWORD
+                        // =========================
+
+                        if (!isLogin) {
+
+                            Spacer(
+                                modifier = Modifier.height(10.dp)
+                            )
+
+                            OutlinedTextField(
+
+                                value = confirmPassword,
+
+                                onValueChange = {
+
+                                    confirmPassword = it
+                                },
+
+                                label = {
+
+                                    Text("Confirmar Contraseña")
+                                },
+
+                                modifier = Modifier.fillMaxWidth(),
+
+                                colors = OutlinedTextFieldDefaults.colors(
+
+                                    focusedBorderColor =
+                                        MaterialTheme.colorScheme.primary,
+
+                                    focusedLabelColor =
+                                        MaterialTheme.colorScheme.primary
+                                ),
+
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                        }
+
+                        Spacer(
+                            modifier = Modifier.height(16.dp)
+                        )
+
+                        // =========================
+                        // BOTON
+                        // =========================
+
+                        Button(
+
+                            onClick = {
+
+                                if (
+                                    usuario.isEmpty() ||
+                                    password.isEmpty()
+                                ) {
+
+                                    Toast.makeText(
+
+                                        context,
+
+                                        "Complete todos los campos",
+
+                                        Toast.LENGTH_SHORT
+
+                                    ).show()
+
+                                    return@Button
+                                }
+
+                                scope.launch {
+
+                                    if (isLogin) {
+
+                                        val user =
+                                            viewModel.login(
+                                                usuario,
+                                                password
+                                            )
+
+                                        if (user != null) {
+
+                                            Toast.makeText(
+
+                                                context,
+
+                                                "Bienvenido ${user.user}",
+
+                                                Toast.LENGTH_SHORT
+
+                                            ).show()
+
+                                            navController.navigate("menu")
+
+                                        } else {
+
+                                            Toast.makeText(
+
+                                                context,
+
+                                                "Usuario incorrecto",
+
+                                                Toast.LENGTH_SHORT
+
+                                            ).show()
+                                        }
+
+                                    } else {
+
+                                        if (
+                                            password != confirmPassword
+                                        ) {
+
+                                            Toast.makeText(
+
+                                                context,
+
+                                                "Las contraseñas no coinciden",
+
+                                                Toast.LENGTH_SHORT
+
+                                            ).show()
+
+                                            return@launch
+                                        }
+
+                                        val ok =
+                                            viewModel.registrar(
+                                                usuario,
+                                                password
+                                            )
+
+                                        if (ok) {
+
+                                            Toast.makeText(
+
+                                                context,
+
+                                                "Usuario registrado",
+
+                                                Toast.LENGTH_SHORT
+
+                                            ).show()
+
+                                            isLogin = true
+
+                                        } else {
+
+                                            Toast.makeText(
+
+                                                context,
+
+                                                "El usuario ya existe",
+
+                                                Toast.LENGTH_SHORT
+
+                                            ).show()
+                                        }
+                                    }
+                                }
+                            },
+
+                            modifier = Modifier.fillMaxWidth(),
+
+                            colors = ButtonDefaults.buttonColors(
+
+                                containerColor =
+                                    MaterialTheme.colorScheme.primary
+                            ),
+
+                            shape = RoundedCornerShape(12.dp)
+
+                        ) {
+
+                            Text(
+
+                                text = if (isLogin)
+                                    "Entrar"
+                                else
+                                    "Crear Cuenta",
+
+                                color =
+                                    MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+
+                        Spacer(
+                            modifier = Modifier.height(10.dp)
+                        )
+
+                        TextButton(
+
+                            onClick = {}
+
+                        ) {
+
+                            Text(
+
+                                text = "¿Necesitas ayuda?",
+
+                                color =
+                                    MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
