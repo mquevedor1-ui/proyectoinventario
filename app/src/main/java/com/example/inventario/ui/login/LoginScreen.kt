@@ -1,5 +1,7 @@
 package com.example.inventario.ui.login
 
+
+
 import android.app.Application
 import android.widget.Toast
 
@@ -56,6 +58,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 
 import com.example.inventario.viewModel.UsuarioViewModel
+import com.example.inventario.viewModel.SessionManager
 
 import kotlinx.coroutines.launch
 
@@ -77,6 +80,10 @@ fun LoginScreen(
                 context.applicationContext as Application
             )
     )
+
+    // =========================
+    // ESTADOS
+    // =========================
 
     var isLogin by remember {
 
@@ -234,6 +241,8 @@ fun LoginScreen(
                                 .padding(4.dp)
                         ) {
 
+                            // LOGIN
+
                             Button(
 
                                 onClick = {
@@ -271,6 +280,8 @@ fun LoginScreen(
                                         MaterialTheme.colorScheme.onBackground
                                 )
                             }
+
+                            // REGISTRO
 
                             Button(
 
@@ -454,6 +465,10 @@ fun LoginScreen(
 
                                 scope.launch {
 
+                                    // =========================
+                                    // LOGIN
+                                    // =========================
+
                                     if (isLogin) {
 
                                         val user =
@@ -463,6 +478,9 @@ fun LoginScreen(
                                             )
 
                                         if (user != null) {
+
+                                            // GUARDAR SESION
+                                            SessionManager.login(user)
 
                                             Toast.makeText(
 
@@ -482,14 +500,20 @@ fun LoginScreen(
 
                                                 context,
 
-                                                "Usuario incorrecto",
+                                                "Usuario o contraseña incorrectos",
 
                                                 Toast.LENGTH_SHORT
 
                                             ).show()
                                         }
 
-                                    } else {
+                                    }
+
+                                    // =========================
+                                    // REGISTRO
+                                    // =========================
+
+                                    else {
 
                                         if (
                                             password != confirmPassword
@@ -525,6 +549,11 @@ fun LoginScreen(
                                                 Toast.LENGTH_SHORT
 
                                             ).show()
+
+                                            // LIMPIAR
+                                            usuario = ""
+                                            password = ""
+                                            confirmPassword = ""
 
                                             isLogin = true
 

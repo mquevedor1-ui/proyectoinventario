@@ -1,574 +1,156 @@
 package com.example.inventario.ui.config
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ColorLens
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.inventario.data.usuario
-import com.example.inventario.viewModel.AppThemeState
+import com.example.inventario.viewModel.SessionManager
 import com.example.inventario.viewModel.UsuarioViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfigScreen(
-
     navController: NavController,
-
-    usuarioViewModel: UsuarioViewModel = viewModel()
-
+    usuarioViewModel: UsuarioViewModel
 ) {
-
-    var seccion by remember {
-
-        mutableStateOf("temas")
-    }
-
-    Row(
-
-        modifier = Modifier.fillMaxSize()
-
-    ) {
-
-        // =========================
-        // MENU IZQUIERDO
-        // =========================
-
-        Column(
-
-            modifier = Modifier
-                .widthIn(min = 110.dp, max = 140.dp)
-                .fillMaxHeight()
-                .background(MaterialTheme.colorScheme.primary)
-                .padding(8.dp),
-
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-
-        ) {
-
-            Text(
-
-                text = "Config",
-
-                fontSize = 18.sp,
-
-                modifier = Modifier.padding(8.dp)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Configuración", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
             )
-
-            MenuButton(
-                "Crear",
-                Icons.Default.Person
-            ) {
-
-                seccion = "crear"
-            }
-
-            MenuButton(
-                "Editar",
-                Icons.Default.Edit
-            ) {
-
-                seccion = "editar"
-            }
-
-            MenuButton(
-                "Usuarios",
-                Icons.Default.List
-            ) {
-
-                seccion = "usuarios"
-            }
-
-            MenuButton(
-                "Temas",
-                Icons.Default.ColorLens
-            ) {
-
-                seccion = "temas"
-            }
-
-            MenuButton(
-                "Notificaciones",
-                Icons.Default.Notifications
-            ) {
-
-                seccion = "notificaciones"
-            }
         }
-
-        // =========================
-        // CONTENIDO
-        // =========================
-
+    ) { padding ->
         Column(
-
             modifier = Modifier
                 .fillMaxSize()
+                .padding(padding)
                 .padding(16.dp)
-
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            
+            if (SessionManager.esAdmin()) {
+                Text(
+                    text = "Administración",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                
+                ConfigItem(
+                    title = "Gestión de Usuarios",
+                    subtitle = "Listar, eliminar y ver roles de usuarios",
+                    icon = Icons.Default.People,
+                    onClick = { navController.navigate("usuarios") }
+                )
 
-            when (seccion) {
+                ConfigItem(
+                    title = "Crear Nuevo Usuario",
+                    subtitle = "Registrar personal con rol admin o usuario",
+                    icon = Icons.Default.PersonAdd,
+                    onClick = { navController.navigate("crearUsuario") }
+                )
+            }
 
-                // =========================
-                // TEMAS
-                // =========================
+            Text(
+                text = "Personalización y App",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(top = 8.dp)
+            )
 
-                "temas" -> {
+            ConfigItem(
+                title = "Temas Visuales",
+                subtitle = "Cambiar colores de la interfaz",
+                icon = Icons.Default.Palette,
+                onClick = { navController.navigate("temas") }
+            )
 
-                    Column(
-                        modifier = Modifier.verticalScroll(
-                            rememberScrollState()
-                        )
-                    ) {
-
-                        Text(
-
-                            text = "Cambiar Tema",
-
-                            fontSize = 24.sp
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        FlowRow(
-
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-
-                        ) {
-
-                            listOf(
-                                "verde",
-                                "azul",
-                                "oscuro",
-                                "naranja",
-                                "morado"
-                            ).forEach { tema ->
-
-                                Button(
-
-                                    onClick = {
-
-                                        AppThemeState.cambiarTema(tema)
-                                    }
-
-                                ) {
-
-                                    Text(tema)
-                                }
-                            }
-                        }
+            ConfigItem(
+                title = "Notificaciones",
+                subtitle = "Configurar alertas de stock bajo",
+                icon = Icons.Default.Notifications,
+                onClick = { /* Implementar después */ }
+            )
+            
+            Spacer(modifier = Modifier.height(20.dp))
+            
+            // Botón de Cerrar Sesión (Opcional pero recomendado aquí)
+            OutlinedButton(
+                onClick = { 
+                    SessionManager.logout()
+                    navController.navigate("login") {
+                        popUpTo(0)
                     }
-                }
-
-                // =========================
-                // CREAR USUARIO
-                // =========================
-
-                "crear" -> {
-
-                    Column {
-
-                        Text(
-                            text = "Crear Usuario",
-                            fontSize = 24.sp
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Button(
-
-                            onClick = {
-
-                                navController.navigate("crearUsuario")
-                            }
-
-                        ) {
-
-                            Text("Ir")
-                        }
-                    }
-                }
-
-                // =========================
-                // EDITAR USUARIOS
-                // =========================
-
-                "editar" -> {
-
-                    var buscar by remember {
-
-                        mutableStateOf("")
-                    }
-
-                    var usuarioSeleccionado by remember {
-
-                        mutableStateOf<usuario?>(null)
-                    }
-
-                    var mostrarDialogo by remember {
-
-                        mutableStateOf(false)
-                    }
-
-                    val listaUsuarios by usuarioViewModel
-                        .usuarios
-                        .collectAsState()
-
-                    val usuariosFiltrados = listaUsuarios.filter {
-
-                        it.user.contains(
-                            buscar,
-                            ignoreCase = true
-                        ) ||
-
-                                it.rol.contains(
-                                    buscar,
-                                    ignoreCase = true
-                                )
-                    }
-
-                    Column {
-
-                        Text(
-                            text = "Editar Usuarios",
-                            fontSize = 24.sp
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        OutlinedTextField(
-
-                            value = buscar,
-
-                            onValueChange = {
-
-                                buscar = it
-                            },
-
-                            label = {
-
-                                Text("Buscar usuario")
-                            },
-
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        LazyColumn(
-
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-
-                        ) {
-
-                            items(usuariosFiltrados) { usuario ->
-
-                                Row(
-
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(
-                                            MaterialTheme.colorScheme.surface
-                                        )
-                                        .combinedClickable(
-
-                                            onClick = {
-                                            },
-
-                                            onDoubleClick = {
-
-                                                usuarioSeleccionado = usuario
-
-                                                mostrarDialogo = true
-                                            }
-                                        )
-                                        .padding(16.dp),
-
-                                    horizontalArrangement = Arrangement.SpaceBetween
-
-                                ) {
-
-                                    Column {
-
-                                        Text(
-
-                                            text = usuario.user,
-
-                                            fontWeight = FontWeight.Bold,
-
-                                            fontSize = 18.sp
-                                        )
-
-                                        Spacer(
-                                            modifier = Modifier.height(4.dp)
-                                        )
-
-                                        Text(
-                                            text = "Rol: ${usuario.rol}"
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        // =========================
-                        // DIALOGO OPCIONES
-                        // =========================
-
-                        if (
-                            mostrarDialogo &&
-                            usuarioSeleccionado != null
-                        ) {
-
-                            AlertDialog(
-
-                                onDismissRequest = {
-
-                                    mostrarDialogo = false
-                                },
-
-                                title = {
-
-                                    Text("Opciones Usuario")
-                                },
-
-                                text = {
-
-                                    Text(
-                                        "¿Qué deseas hacer con ${usuarioSeleccionado!!.user}?"
-                                    )
-                                },
-
-                                confirmButton = {
-
-                                    TextButton(
-
-                                        onClick = {
-
-                                            navController.navigate(
-                                                "editarUsuario/${usuarioSeleccionado!!.id}"
-                                            )
-
-                                            mostrarDialogo = false
-                                        }
-
-                                    ) {
-
-                                        Text("Editar")
-                                    }
-                                },
-
-                                dismissButton = {
-
-                                    Row {
-
-                                        TextButton(
-
-                                            onClick = {
-
-                                                usuarioViewModel
-                                                    .eliminarUsuario(
-                                                        usuarioSeleccionado!!
-                                                    )
-
-                                                mostrarDialogo = false
-                                            }
-
-                                        ) {
-
-                                            Text("Eliminar")
-                                        }
-
-                                        TextButton(
-
-                                            onClick = {
-
-                                                mostrarDialogo = false
-                                            }
-
-                                        ) {
-
-                                            Text("Cancelar")
-                                        }
-                                    }
-                                }
-                            )
-                        }
-                    }
-                }
-
-                // =========================
-                // LISTA USUARIOS
-                // =========================
-
-                "usuarios" -> {
-
-                    val listaUsuarios by usuarioViewModel
-                        .usuarios
-                        .collectAsState()
-
-                    Column {
-
-                        Text(
-                            text = "Lista Usuarios",
-                            fontSize = 24.sp
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        LazyColumn(
-
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-
-                        ) {
-
-                            items(listaUsuarios) { usuario ->
-
-                                Column(
-
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(
-                                            MaterialTheme.colorScheme.surface
-                                        )
-                                        .padding(16.dp)
-
-                                ) {
-
-                                    Text(
-
-                                        text = usuario.user,
-
-                                        fontWeight = FontWeight.Bold,
-
-                                        fontSize = 18.sp
-                                    )
-
-                                    Spacer(
-                                        modifier = Modifier.height(4.dp)
-                                    )
-
-                                    Text(
-                                        text = "Rol: ${usuario.rol}"
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // =========================
-                // NOTIFICACIONES
-                // =========================
-
-                "notificaciones" -> {
-
-                    Row(
-
-                        verticalAlignment = Alignment.CenterVertically
-
-                    ) {
-
-                        Switch(
-
-                            checked = true,
-
-                            onCheckedChange = {}
-
-                        )
-
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        Text("Activar notificaciones")
-                    }
-                }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+            ) {
+                Icon(Icons.Default.ExitToApp, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("Cerrar Sesión")
             }
         }
     }
 }
 
 @Composable
-fun MenuButton(
-
-    texto: String,
-
-    icono: androidx.compose.ui.graphics.vector.ImageVector,
-
+fun ConfigItem(
+    title: String,
+    subtitle: String,
+    icon: ImageVector,
     onClick: () -> Unit
-
 ) {
-
-    Button(
-
+    Card(
         onClick = onClick,
-
-        modifier = Modifier.fillMaxWidth()
-
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(2.dp)
     ) {
-
         Row(
-
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
-
         ) {
-
-            Icon(
-
-                imageVector = icono,
-
-                contentDescription = null
-            )
-
-            Spacer(modifier = Modifier.width(4.dp))
-
-            Text(
-
-                text = texto,
-
-                fontSize = 12.sp
-            )
+            Surface(
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.padding(12.dp),
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            
+            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
         }
     }
 }

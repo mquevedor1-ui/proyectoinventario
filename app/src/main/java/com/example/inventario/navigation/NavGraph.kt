@@ -1,123 +1,390 @@
 package com.example.inventario.navigation
 
+import android.app.Application
+
 import androidx.compose.foundation.layout.fillMaxSize
+
 import androidx.compose.runtime.Composable
+
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import android.app.Application
+
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+
+import com.example.inventario.ui.CrearUsuarioScreen
+import com.example.inventario.ui.config.ConfigScreen
+import com.example.inventario.ui.config.TemasScreen
+import com.example.inventario.ui.config.UsuariosScreen
+import com.example.inventario.ui.inventario.CrearProductoScreen
+import com.example.inventario.ui.inventario.EditarProductoScreen
+import com.example.inventario.ui.inventario.InventarioGeneralScreen
 import com.example.inventario.ui.login.LoginScreen
 import com.example.inventario.ui.menu.BodegaMenuScreen
 import com.example.inventario.ui.menu.MainMenuScreen
-import com.example.inventario.ui.CrearUsuarioScreen
-import com.example.inventario.ui.config.ConfigScreen
+
 import com.example.inventario.viewModel.BodegaViewModel
 import com.example.inventario.viewModel.UsuarioViewModel
 
-
 @Composable
-fun NavGraph(modifier: Modifier = Modifier) {
+fun NavGraph(
 
-    val navController = rememberNavController()
+    modifier: Modifier = Modifier
 
+) {
 
-    val context = LocalContext.current
+    // nav
+    val navController =
+        rememberNavController()
 
-    val bodegaViewModel: BodegaViewModel = viewModel(
-        factory = ViewModelProvider.AndroidViewModelFactory.getInstance(context.applicationContext as Application)
+    // context
+    val context =
+        LocalContext.current
+
+    // vm bodega
+    val bodegaViewModel:
+            BodegaViewModel = viewModel(
+
+        factory =
+            ViewModelProvider
+                .AndroidViewModelFactory
+                .getInstance(
+
+                    context.applicationContext
+                            as Application
+                )
     )
-    val usuarioViewModel: UsuarioViewModel = viewModel(
-        factory = ViewModelProvider.AndroidViewModelFactory.getInstance(context.applicationContext as Application)
+
+    // vm usuario
+    val usuarioViewModel:
+            UsuarioViewModel = viewModel(
+
+        factory =
+            ViewModelProvider
+                .AndroidViewModelFactory
+                .getInstance(
+
+                    context.applicationContext
+                            as Application
+                )
     )
 
-    val esAdmin = true
-
+    // navhost
     NavHost(
+
         navController = navController,
+
         startDestination = "login",
+
         modifier = modifier
+
     ) {
 
-        // LOGIN
+        // login
         composable("login") {
-            LoginScreen(navController)
-        }
 
-        // MENU PRINCIPAL
-        composable("menu") {
-            MainMenuScreen(
-                navController = navController,
-                viewModel = bodegaViewModel,
-                esAdmin = esAdmin
+            LoginScreen(
+
+                navController =
+                    navController
             )
         }
 
-        // MENU BODEGA
-        composable("bodegaMenu/{bodegaId}") { backStackEntry ->
-            val id = backStackEntry.arguments?.getString("bodegaId") ?: ""
+        // menu
+        composable("menu") {
+
+            MainMenuScreen(
+
+                navController =
+                    navController,
+
+                viewModel =
+                    bodegaViewModel
+            )
+        }
+
+        // menu bodega
+        composable(
+
+            "bodegaMenu/{bodegaId}"
+
+        ) { backStackEntry ->
+
+            val id =
+                backStackEntry
+                    .arguments
+                    ?.getString(
+                        "bodegaId"
+                    ) ?: ""
 
             BodegaMenuScreen(
-                navController = navController,
+
+                navController =
+                    navController,
+
                 bodegaId = id
-           )
+            )
         }
 
-        // CONFIGURACION
+        // config
         composable("configuracion") {
-            ConfigScreen(navController, usuarioViewModel)
+
+            ConfigScreen(
+
+                navController =
+                    navController,
+
+                usuarioViewModel =
+                    usuarioViewModel
+            )
         }
 
-        // CREAR USUARIO
+        // crear usuario
         composable("crearUsuario") {
-            CrearUsuarioScreen(navController, usuarioViewModel)
+            CrearUsuarioScreen(
+                navController = navController,
+                viewModel = usuarioViewModel
+            )
         }
 
-        // --- DESTINOS DE BODEGA ---
-        composable("inventario/{bodegaId}") { backStackEntry ->
-            val bodegaId = backStackEntry.arguments?.getString("bodegaId") ?: ""
-            PlaceholderScreen("Inventario - Bodega $bodegaId")
+        // lista de usuarios (AÑADIDO)
+        composable("usuarios") {
+            UsuariosScreen(
+                navController = navController,
+                viewModel = usuarioViewModel
+            )
         }
-        composable("crearProducto/{bodegaId}") { backStackEntry ->
-            val bodegaId = backStackEntry.arguments?.getString("bodegaId") ?: ""
-            PlaceholderScreen("Crear Producto - Bodega $bodegaId")
+
+        // temas
+        composable("temas") {
+            TemasScreen(navController = navController)
         }
-        composable("entradas/{bodegaId}") { backStackEntry ->
-            val bodegaId = backStackEntry.arguments?.getString("bodegaId") ?: ""
-            PlaceholderScreen("Entradas - Bodega $bodegaId")
+
+        // inventario
+        composable(
+
+            "inventario/{bodegaId}"
+
+        ) { backStackEntry ->
+
+            val bodegaId =
+                backStackEntry
+                    .arguments
+                    ?.getString(
+                        "bodegaId"
+                    ) ?: ""
+
+            InventarioGeneralScreen(
+
+                navController =
+                    navController,
+
+                bodegaId =
+                    bodegaId
+            )
         }
-        composable("salidas/{bodegaId}") { backStackEntry ->
-            val bodegaId = backStackEntry.arguments?.getString("bodegaId") ?: ""
-            PlaceholderScreen("Salidas - Bodega $bodegaId")
+
+        // crear producto
+        composable(
+
+            "crearProducto/{bodegaId}"
+
+        ) { backStackEntry ->
+
+            val bodegaId =
+                backStackEntry
+                    .arguments
+                    ?.getString(
+                        "bodegaId"
+                    ) ?: ""
+
+            CrearProductoScreen(
+
+                navController =
+                    navController,
+
+                bodegaId =
+                    bodegaId
+            )
         }
-        composable("facturas/{bodegaId}") { backStackEntry ->
-            val bodegaId = backStackEntry.arguments?.getString("bodegaId") ?: ""
-            PlaceholderScreen("Facturas - Bodega $bodegaId")
+
+        // editar producto
+        composable(
+
+            "editarProducto/{productoId}"
+
+        ) { backStackEntry ->
+
+            val productoId =
+                backStackEntry
+                    .arguments
+                    ?.getString(
+                        "productoId"
+                    )
+                    ?.toIntOrNull() ?: 0
+
+            EditarProductoScreen(
+
+                navController =
+                    navController,
+
+                productoId =
+                    productoId
+            )
         }
-        composable("existencias/{bodegaId}") { backStackEntry ->
-            val bodegaId = backStackEntry.arguments?.getString("bodegaId") ?: ""
-            PlaceholderScreen("Existencias - Bodega $bodegaId")
+
+        // entradas
+        composable(
+
+            "entradas/{bodegaId}"
+
+        ) { backStackEntry ->
+
+            val bodegaId =
+                backStackEntry
+                    .arguments
+                    ?.getString(
+                        "bodegaId"
+                    ) ?: ""
+
+            PlaceholderScreen(
+
+                "Entradas - $bodegaId"
+            )
         }
-        composable("presupuesto/{bodegaId}") { backStackEntry ->
-            val bodegaId = backStackEntry.arguments?.getString("bodegaId") ?: ""
-            PlaceholderScreen("Presupuesto - Bodega $bodegaId")
+
+        // salidas
+        composable(
+
+            "salidas/{bodegaId}"
+
+        ) { backStackEntry ->
+
+            val bodegaId =
+                backStackEntry
+                    .arguments
+                    ?.getString(
+                        "bodegaId"
+                    ) ?: ""
+
+            PlaceholderScreen(
+
+                "Salidas - $bodegaId"
+            )
         }
-        composable("stockBajo/{bodegaId}") { backStackEntry ->
-            val bodegaId = backStackEntry.arguments?.getString("bodegaId") ?: ""
-            PlaceholderScreen("Stock Bajo - Bodega $bodegaId")
+
+        // facturas
+        composable(
+
+            "facturas/{bodegaId}"
+
+        ) { backStackEntry ->
+
+            val bodegaId =
+                backStackEntry
+                    .arguments
+                    ?.getString(
+                        "bodegaId"
+                    ) ?: ""
+
+            PlaceholderScreen(
+
+                "Facturas - $bodegaId"
+            )
+        }
+
+        // existencias
+        composable(
+
+            "existencias/{bodegaId}"
+
+        ) { backStackEntry ->
+
+            val bodegaId =
+                backStackEntry
+                    .arguments
+                    ?.getString(
+                        "bodegaId"
+                    ) ?: ""
+
+            PlaceholderScreen(
+
+                "Existencias - $bodegaId"
+            )
+        }
+
+        // presupuesto
+        composable(
+
+            "presupuesto/{bodegaId}"
+
+        ) { backStackEntry ->
+
+            val bodegaId =
+                backStackEntry
+                    .arguments
+                    ?.getString(
+                        "bodegaId"
+                    ) ?: ""
+
+            PlaceholderScreen(
+
+                "Presupuesto - $bodegaId"
+            )
+        }
+
+        // stock
+        composable(
+
+            "stockBajo/{bodegaId}"
+
+        ) { backStackEntry ->
+
+            val bodegaId =
+                backStackEntry
+                    .arguments
+                    ?.getString(
+                        "bodegaId"
+                    ) ?: ""
+
+            PlaceholderScreen(
+
+                "Stock Bajo - $bodegaId"
+            )
         }
     }
 }
 
 @Composable
-fun PlaceholderScreen(titulo: String) {
+fun PlaceholderScreen(
+
+    titulo: String
+
+) {
+
     androidx.compose.foundation.layout.Box(
+
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = androidx.compose.ui.Alignment.Center
+
+        contentAlignment =
+            Alignment.Center
+
     ) {
-        androidx.compose.material3.Text(text = titulo, style = androidx.compose.material3.MaterialTheme.typography.headlineMedium)
+
+        androidx.compose.material3.Text(
+
+            text = titulo,
+
+            style =
+                androidx.compose.material3
+                    .MaterialTheme
+                    .typography
+                    .headlineMedium
+        )
     }
 }

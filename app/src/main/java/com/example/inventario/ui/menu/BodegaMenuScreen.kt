@@ -1,5 +1,8 @@
 package com.example.inventario.ui.menu
 
+
+
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 
@@ -25,11 +28,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 
@@ -47,10 +52,9 @@ import androidx.compose.ui.unit.sp
 
 import androidx.navigation.NavController
 
-// =========================
-// MODELO
-// =========================
+import com.example.inventario.viewModel.SessionManager
 
+// modelo
 data class Opcion(
 
     val titulo: String,
@@ -64,10 +68,7 @@ data class Opcion(
     val ruta: String
 )
 
-// =========================
-// LISTA OPCIONES
-// =========================
-
+// lista
 @Composable
 fun listaOpciones(): List<Opcion> {
 
@@ -81,6 +82,7 @@ fun listaOpciones(): List<Opcion> {
             ruta = "inventario"
         ),
 
+        // admin
         Opcion(
             titulo = "Crear Producto",
             descripcion = "Agregar nuevo",
@@ -139,10 +141,7 @@ fun listaOpciones(): List<Opcion> {
     )
 }
 
-// =========================
-// PANTALLA MENU
-// =========================
-
+// pantalla
 @Composable
 fun BodegaMenuScreen(
 
@@ -152,13 +151,18 @@ fun BodegaMenuScreen(
 
 ) {
 
-    val esAdmin = true
+    // admin
+    val esAdmin =
+        SessionManager.esAdmin()
 
-    val opcionesFiltradas = listaOpciones().filter {
+    // filtro
+    val opcionesFiltradas =
+        listaOpciones().filter {
 
-        !it.soloAdmin || esAdmin
-    }
+            !it.soloAdmin || esAdmin
+        }
 
+    // ui
     Column(
 
         modifier = Modifier
@@ -179,36 +183,70 @@ fun BodegaMenuScreen(
 
     ) {
 
-        // =========================
-        // TITULO
-        // =========================
+        // header
+        Row(
 
-        Text(
+            modifier = Modifier.fillMaxWidth(),
 
-            text = "Sistema de Inventario",
+            horizontalArrangement =
+                Arrangement.SpaceBetween,
 
-            fontSize = 24.sp,
+            verticalAlignment =
+                Alignment.CenterVertically
 
-            fontWeight = FontWeight.Bold,
+        ) {
 
-            color = MaterialTheme.colorScheme.onBackground
-        )
+            Column {
 
-        Text(
+                Text(
 
-            text = "Bodega: $bodegaId",
+                    text = "Sistema Inventario",
 
-            color = MaterialTheme.colorScheme.onBackground
-        )
+                    fontSize = 24.sp,
+
+                    fontWeight = FontWeight.Bold,
+
+                    color =
+                        MaterialTheme.colorScheme.onBackground
+                )
+
+                Text(
+
+                    text = "Bodega: $bodegaId",
+
+                    color =
+                        MaterialTheme.colorScheme.onBackground
+                )
+            }
+
+            // regresar
+            IconButton(
+
+                onClick = {
+
+                    navController.popBackStack()
+                }
+
+            ) {
+
+                Icon(
+
+                    imageVector =
+                        Icons.Default.ArrowBack,
+
+                    contentDescription = null,
+
+                    tint =
+                        MaterialTheme.colorScheme.primary
+                )
+            }
+        }
 
         Spacer(
             modifier = Modifier.height(20.dp)
         )
 
-        // =========================
-        // GRID
-        // =========================
-
+        // grid
         LazyVerticalGrid(
 
             columns = GridCells.Fixed(2),
@@ -240,10 +278,7 @@ fun BodegaMenuScreen(
     }
 }
 
-// =========================
-// TARJETA
-// =========================
-
+// card
 @Composable
 fun CardOpcion(
 
@@ -278,14 +313,12 @@ fun CardOpcion(
 
             modifier = Modifier.padding(16.dp),
 
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment =
+                Alignment.CenterVertically
 
         ) {
 
-            // =========================
-            // ICONO
-            // =========================
-
+            // icono
             Box(
 
                 modifier = Modifier
@@ -297,13 +330,15 @@ fun CardOpcion(
                         CircleShape
                     ),
 
-                contentAlignment = Alignment.Center
+                contentAlignment =
+                    Alignment.Center
 
             ) {
 
                 Icon(
 
-                    imageVector = Icons.Default.Home,
+                    imageVector =
+                        Icons.Default.Home,
 
                     contentDescription = null,
 
@@ -316,17 +351,15 @@ fun CardOpcion(
                 modifier = Modifier.width(10.dp)
             )
 
-            // =========================
-            // TEXTOS
-            // =========================
-
+            // textos
             Column {
 
                 Text(
 
                     text = opcion.titulo,
 
-                    fontWeight = FontWeight.Bold,
+                    fontWeight =
+                        FontWeight.Bold,
 
                     color =
                         MaterialTheme.colorScheme.onSurface

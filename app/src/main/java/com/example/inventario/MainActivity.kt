@@ -37,15 +37,14 @@ class MainActivity : ComponentActivity() {
 
         setContent {
 
-            // =========================
+
             // OBSERVAR TEMA GLOBAL
-            // =========================
+
 
             val temaActual by AppThemeState.tema.collectAsState()
 
-            // =========================
             // TEMAS
-            // =========================
+
 
             val tema = when (temaActual) {
 
@@ -60,9 +59,9 @@ class MainActivity : ComponentActivity() {
                 else -> TemaVerde
             }
 
-            // =========================
+
             // COLOR SCHEME
-            // =========================
+
 
             val colores = if (temaActual == "oscuro") {
 
@@ -99,9 +98,10 @@ class MainActivity : ComponentActivity() {
                 )
             }
 
-            // =========================
+
             // MATERIAL THEME GLOBAL
-            // =========================
+
+
 
             MaterialTheme(
 

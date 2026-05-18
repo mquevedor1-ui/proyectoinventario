@@ -23,53 +23,37 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
     val usuarios: StateFlow<List<usuario>> = _usuarios
 
     init {
-
-        sincronizarUsuarios()
+        actualizarListaCompleta()
     }
 
-    // SINCRONIZAR USUARIOS
-    private fun sincronizarUsuarios() {
-
+    private fun actualizarListaCompleta() {
         viewModelScope.launch {
-
+            // 1. Cargar lo que haya localmente para respuesta rápida
+            _usuarios.value = dao.obtenerTodos()
+            
+            // 2. Intentar traer de la nube
             try {
-
                 val usuariosNube = firebaseRepo.obtenerUsuarios()
+                if (usuariosNube.isNotEmpty()) {
+                    usuariosNube.forEach { userNube ->
+                        // Protección contra nulos que Firebase pueda traer de registros antiguos
+                        val nombre = (userNube.user as String?).orEmpty()
+                        if (nombre.isEmpty()) return@forEach
 
-                usuariosNube.forEach { user ->
-
-                    val existe = dao.existe(user.user)
-
-                    if (existe == null) {
-
-                        dao.insertar(user)
+                        val local = dao.existe(nombre)
+                        if (local == null) {
+                            // Si no existe, lo insertamos con id=0 para que Room genere un ID único local
+                            dao.insertar(userNube.copy(id = 0))
+                        } else {
+                            // Si existe, actualizamos pass y rol pero mantenemos el ID local para evitar conflictos
+                            dao.actualizar(userNube.copy(id = local.id))
+                        }
                     }
+                    // 3. Actualizar la lista observable con los datos sincronizados
+                    _usuarios.value = dao.obtenerTodos()
                 }
-
-                // CREAR ADMIN POR DEFECTO
-                val listaLocal = dao.obtenerTodos()
-
-                if (listaLocal.isEmpty() && usuariosNube.isEmpty()) {
-
-                    val admin = usuario(
-
-                        user = "admin",
-
-                        pass = "1234",
-
-                        rol = "admin"
-                    )
-
-                    dao.insertar(admin)
-
-                    firebaseRepo.guardarUsuario(admin)
-                }
-
-                _usuarios.value = dao.obtenerTodos()
-
             } catch (e: Exception) {
-
-                _usuarios.value = dao.obtenerTodos()
+                e.printStackTrace()
             }
         }
     }
@@ -165,30 +149,28 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
         nuevaPass: String,
         nuevoRol: String
     ) {
-
         viewModelScope.launch {
-
-            // SI CAMBIÓ EL NOMBRE
             if (usuarioViejo.user != nuevoUser) {
-
+                // Si cambia el nombre, eliminamos el anterior y creamos uno nuevo
                 dao.eliminar(usuarioViejo)
-
                 firebaseRepo.eliminarUsuario(usuarioViejo.user)
+
+                val nuevoUsuario = usuario(
+                    user = nuevoUser,
+                    pass = nuevaPass,
+                    rol = nuevoRol
+                )
+                dao.insertar(nuevoUsuario)
+                firebaseRepo.guardarUsuario(nuevoUsuario)
+            } else {
+                // Si el nombre es el mismo, actualizamos el registro existente usando su ID
+                val usuarioActualizado = usuarioViejo.copy(
+                    pass = nuevaPass,
+                    rol = nuevoRol
+                )
+                dao.actualizar(usuarioActualizado)
+                firebaseRepo.guardarUsuario(usuarioActualizado)
             }
-
-            val usuarioActualizado = usuario(
-
-                user = nuevoUser,
-
-                pass = nuevaPass,
-
-                rol = nuevoRol
-            )
-
-            dao.insertar(usuarioActualizado)
-
-            firebaseRepo.guardarUsuario(usuarioActualizado)
-
             _usuarios.value = dao.obtenerTodos()
         }
     }

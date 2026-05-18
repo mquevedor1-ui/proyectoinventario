@@ -10,20 +10,59 @@ import androidx.room.Update
 @Dao
 interface usuarioDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertar(usuario: usuario): Long
+    // insertar
+    @Insert(
+        onConflict =
+            OnConflictStrategy.REPLACE
+    )
+    suspend fun insertar(
 
-    @Query("SELECT * FROM usuario WHERE user = :user AND pass = :pass")
-    suspend fun login(user: String, pass: String): usuario?
+        usuario: usuario
 
-    @Query("SELECT * FROM usuario WHERE user = :user LIMIT 1")
-    suspend fun existe(user: String): usuario?
+    ): Long
 
-    @Query("SELECT * FROM usuario")
-    suspend fun obtenerTodos(): List<usuario>
+    // login
+    @Query(
+        "SELECT * FROM usuario WHERE user = :user AND pass = :pass"
+    )
+    suspend fun login(
+
+        user: String,
+
+        pass: String
+
+    ): usuario?
+
+    // existe
+    @Query(
+        "SELECT * FROM usuario WHERE user = :user LIMIT 1"
+    )
+    suspend fun existe(
+
+        user: String
+
+    ): usuario?
+
+    // lista
+    @Query(
+        "SELECT * FROM usuario"
+    )
+    suspend fun obtenerTodos():
+            List<usuario>
+
+    // actualizar
     @Update
-    suspend fun actualizar(user: usuario)
+    suspend fun actualizar(
 
+        usuario: usuario
+
+    )
+
+    // eliminar
     @Delete
-    suspend fun eliminar(user: usuario)
+    suspend fun eliminar(
+
+        usuario: usuario
+
+    )
 }

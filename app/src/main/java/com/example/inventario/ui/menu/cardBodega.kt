@@ -1,29 +1,44 @@
 package com.example.inventario.ui.menu
 
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
 
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,18 +54,45 @@ fun CardBodega(
 
     bodega: Bodega,
 
-    onClick: () -> Unit
+    esAdmin: Boolean,
+
+    onClick: () -> Unit,
+
+    onEditar: (Bodega) -> Unit,
+
+    onEliminar: (Bodega) -> Unit
 
 ) {
+
+    var mostrarDialogo by remember {
+
+        mutableStateOf(false)
+    }
+
+    var nuevoNombre by remember {
+
+        mutableStateOf(bodega.nombre)
+    }
 
     Card(
 
         modifier = Modifier
             .fillMaxWidth()
-            .clickable {
+            .combinedClickable(
 
-                onClick()
-            },
+                onClick = {
+
+                    onClick()
+                },
+
+                onLongClick = {
+
+                    if (esAdmin) {
+
+                        mostrarDialogo = true
+                    }
+                }
+            ),
 
         shape = RoundedCornerShape(16.dp),
 
@@ -127,7 +169,10 @@ fun CardBodega(
 
             Text(
 
-                text = "Click para acceder",
+                text = if (esAdmin)
+                    "Mantener presionado para editar"
+                else
+                    "Click para acceder",
 
                 fontSize = 12.sp,
 
@@ -136,4 +181,115 @@ fun CardBodega(
             )
         }
     }
-}
+
+    // =========================
+    // DIALOGO ADMIN
+    // =========================
+
+    if (mostrarDialogo) {
+
+        AlertDialog(
+
+            onDismissRequest = {
+
+                mostrarDialogo = false
+            },
+
+            title = {
+
+                Text("Administrar Bodega")
+            },
+
+            text = {
+
+                Column {
+
+                    OutlinedTextField(
+
+                        value = nuevoNombre,
+
+                        onValueChange = {
+
+                            nuevoNombre = it
+                        },
+
+                        label = {
+
+                            Text("Nombre")
+                        }
+                    )
+
+                    Spacer(
+                        modifier = Modifier.height(16.dp)
+                    )
+
+                    Row {
+
+                        IconButton(
+
+                            onClick = {
+
+                                onEditar(
+                                    bodega.copy(
+                                        nombre = nuevoNombre
+                                    )
+                                )
+
+                                mostrarDialogo = false
+                            }
+
+                        ) {
+
+                            Icon(
+
+                                imageVector = Icons.Default.Edit,
+
+                                contentDescription = null
+                            )
+                        }
+
+                        Spacer(
+                            modifier = Modifier.width(10.dp)
+                        )
+
+                        IconButton(
+
+                            onClick = {
+
+                                onEliminar(bodega)
+
+                                mostrarDialogo = false
+                            }
+
+                        ) {
+
+                            Icon(
+
+                                imageVector = Icons.Default.Delete,
+
+                                contentDescription = null,
+
+                                tint =
+                                    MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                }
+            },
+
+            confirmButton = {
+
+                TextButton(
+
+                    onClick = {
+
+                        mostrarDialogo = false
+                    }
+
+                ) {
+
+                    Text("Cerrar")
+                }
+            }
+        )
+    }}

@@ -1,5 +1,7 @@
 package com.example.inventario.ui.menu
 
+
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,6 +17,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Settings
 
 import androidx.compose.material3.AlertDialog
@@ -46,63 +49,47 @@ import androidx.navigation.NavController
 
 import com.example.inventario.data.Bodega
 import com.example.inventario.viewModel.BodegaViewModel
+import com.example.inventario.viewModel.SessionManager
 
 @Composable
 fun MainMenuScreen(
 
     navController: NavController,
 
-    viewModel: BodegaViewModel,
-
-    esAdmin: Boolean
+    viewModel: BodegaViewModel
 
 ) {
 
-    // =========================
-    // LISTA BODEGAS
-    // =========================
+    // admin
+    val esAdmin = SessionManager.esAdmin()
 
+    // lista
     val bodegas by viewModel.bodegas.collectAsState(
 
         initial = emptyList<Bodega>()
     )
 
-    // =========================
-    // DIALOG CREAR
-    // =========================
-
-    var mostrarDialogoCrear by remember {
+    // crear
+    var mostrarCrear by remember {
 
         mutableStateOf(false)
     }
 
-    var nombreNuevaBodega by remember {
+    var nuevaBodega by remember {
 
         mutableStateOf("")
     }
 
-    // =========================
-    // DIALOG EDITAR
-    // =========================
-
-    var mostrarDialogoEditar by remember {
-
+    // editar
+    var mostrarEditar by remember {
         mutableStateOf(false)
     }
-
     var nombreEditar by remember {
-
         mutableStateOf("")
     }
-
     var bodegaSeleccionada by remember {
-
         mutableStateOf<Bodega?>(null)
     }
-
-    // =========================
-    // PANTALLA
-    // =========================
 
     Column(
 
@@ -123,10 +110,7 @@ fun MainMenuScreen(
             .padding(16.dp)
     ) {
 
-        // =========================
-        // HEADER
-        // =========================
-
+        // header
         Row(
 
             modifier = Modifier.fillMaxWidth(),
@@ -140,7 +124,7 @@ fun MainMenuScreen(
 
                 Text(
 
-                    text = "SISTEMA DE INVENTARIO",
+                    text = "SISTEMA INVENTARIO",
 
                     fontSize = 22.sp,
 
@@ -152,37 +136,63 @@ fun MainMenuScreen(
 
                 Text(
 
-                    text = "Seleccione una bodega",
+                    text = "Seleccione bodega",
 
                     color =
                         MaterialTheme.colorScheme.onBackground
                 )
             }
 
-            // =========================
-            // CONFIG
-            // =========================
+            Row {
 
-            IconButton(
+                // config
+                IconButton(
 
-                onClick = {
+                    onClick = {
 
-                    navController.navigate(
-                        "configuracion"
+                        navController.navigate(
+                            "configuracion"
+                        )
+                    }
+
+                ) {
+
+                    Icon(
+
+                        imageVector = Icons.Default.Settings,
+
+                        contentDescription = null,
+
+                        tint =
+                            MaterialTheme.colorScheme.primary
                     )
                 }
 
-            ) {
+                // salir
+                IconButton(
 
-                Icon(
+                    onClick = {
 
-                    imageVector = Icons.Default.Settings,
+                        SessionManager.cerrarSesion()
 
-                    contentDescription = null,
+                        navController.navigate("login") {
 
-                    tint =
-                        MaterialTheme.colorScheme.primary
-                )
+                            popUpTo(0)
+                        }
+                    }
+
+                ) {
+
+                    Icon(
+
+                        imageVector = Icons.Default.ExitToApp,
+
+                        contentDescription = null,
+
+                        tint =
+                            MaterialTheme.colorScheme.error
+                    )
+                }
             }
         }
 
@@ -190,85 +200,64 @@ fun MainMenuScreen(
             modifier = Modifier.height(20.dp)
         )
 
-        // =========================
-        // GRID BODEGAS
-        // =========================
-
+        // grid
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(bodegas) { bodega ->
-                Column {
-                    CardBodega(
-                        bodega = bodega,
-                        onClick = {
-                            navController.navigate(
-                                "bodegaMenu/${bodega.id}"
-                            )
-                        }
-                    )
-
-                    if (esAdmin) {
-                        TextButton(
-                            onClick = {
-                                bodegaSeleccionada = bodega
-                                nombreEditar = bodega.nombre
-                                mostrarDialogoEditar = true
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Editar", fontSize = 12.sp)
-                        }
+                // card
+                CardBodega(
+                    bodega = bodega,
+                    esAdmin = esAdmin,
+                    onClick = {
+                        navController.navigate("bodegaMenu/${bodega.id}")
+                    },
+                    onEditar = {
+                        viewModel.editarBodega(it)
+                    },
+                    onEliminar = {
+                        viewModel.eliminarBodega(it)
                     }
-                }
+                )
             }
 
-            // =========================
-            // CREAR BODEGA
-            // =========================
-
+            // crear
             if (esAdmin) {
-
                 item {
-
                     CardCrearBodega {
-
-                        mostrarDialogoCrear = true
+                        mostrarCrear = true
                     }
                 }
             }
         }
     }
 
-    // =========================
-    // DIALOG CREAR
-    // =========================
-
-    if (mostrarDialogoCrear) {
+    // dialog crear
+    if (mostrarCrear) {
 
         AlertDialog(
 
             onDismissRequest = {
 
-                mostrarDialogoCrear = false
+                mostrarCrear = false
             },
 
             title = {
 
-                Text("Crear Bodega")
+                Text("Crear")
             },
 
             text = {
 
                 OutlinedTextField(
 
-                    value = nombreNuevaBodega,
+                    value = nuevaBodega,
 
                     onValueChange = {
 
-                        nombreNuevaBodega = it
+                        nuevaBodega = it
                     },
 
                     label = {
@@ -285,17 +274,16 @@ fun MainMenuScreen(
                     onClick = {
 
                         if (
-                            nombreNuevaBodega.isNotEmpty()
+                            nuevaBodega.isNotEmpty()
                         ) {
 
                             viewModel.crearBodega(
-
-                                nombreNuevaBodega
+                                nuevaBodega
                             )
 
-                            nombreNuevaBodega = ""
+                            nuevaBodega = ""
 
-                            mostrarDialogoCrear = false
+                            mostrarCrear = false
                         }
                     }
 
@@ -311,7 +299,7 @@ fun MainMenuScreen(
 
                     onClick = {
 
-                        mostrarDialogoCrear = false
+                        mostrarCrear = false
                     }
 
                 ) {
@@ -322,22 +310,24 @@ fun MainMenuScreen(
         )
     }
 
-    // =========================
-    // DIALOG EDITAR
-    // =========================
+    // dialog editar
+    if (
 
-    if (mostrarDialogoEditar && bodegaSeleccionada != null) {
+        mostrarEditar &&
+        bodegaSeleccionada != null
+
+    ) {
 
         AlertDialog(
 
             onDismissRequest = {
 
-                mostrarDialogoEditar = false
+                mostrarEditar = false
             },
 
             title = {
 
-                Text("Editar Bodega")
+                Text("Editar")
             },
 
             text = {
@@ -353,38 +343,64 @@ fun MainMenuScreen(
 
                     label = {
 
-                        Text("Nuevo Nombre")
+                        Text("Nombre")
                     }
                 )
             },
 
             confirmButton = {
+
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+
+                    horizontalArrangement =
+                        Arrangement.SpaceBetween
                 ) {
+
+                    // eliminar
                     TextButton(
+
                         onClick = {
-                            bodegaSeleccionada?.let { bodega ->
-                                viewModel.eliminarBodega(bodega)
+
+                            bodegaSeleccionada?.let {
+
+                                viewModel.eliminarBodega(it)
                             }
-                            mostrarDialogoEditar = false
+
+                            mostrarEditar = false
                         },
-                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+
+                        colors =
+                            ButtonDefaults.textButtonColors(
+
+                                contentColor =
+                                    MaterialTheme.colorScheme.error
+                            )
+
                     ) {
+
                         Text("Eliminar")
                     }
 
+                    // guardar
                     Button(
+
                         onClick = {
-                            bodegaSeleccionada?.let { bodega ->
+
+                            bodegaSeleccionada?.let {
+
                                 viewModel.editarBodega(
-                                    bodega.copy(nombre = nombreEditar)
+
+                                    it.copy(
+                                        nombre = nombreEditar
+                                    )
                                 )
                             }
-                            mostrarDialogoEditar = false
+
+                            mostrarEditar = false
                         }
+
                     ) {
+
                         Text("Guardar")
                     }
                 }
@@ -396,7 +412,7 @@ fun MainMenuScreen(
 
                     onClick = {
 
-                        mostrarDialogoEditar = false
+                        mostrarEditar = false
                     }
 
                 ) {
