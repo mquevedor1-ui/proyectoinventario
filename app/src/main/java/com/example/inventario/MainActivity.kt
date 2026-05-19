@@ -1,19 +1,23 @@
 package com.example.inventario
 
 import android.os.Bundle
+
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.isSystemInDarkTheme
+
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
@@ -37,14 +41,12 @@ class MainActivity : ComponentActivity() {
 
         setContent {
 
+            // tema actual
 
-            // OBSERVAR TEMA GLOBAL
+            val temaActual by
+            AppThemeState.tema.collectAsState()
 
-
-            val temaActual by AppThemeState.tema.collectAsState()
-
-            // TEMAS
-
+            // seleccionar tema
 
             val tema = when (temaActual) {
 
@@ -59,11 +61,11 @@ class MainActivity : ComponentActivity() {
                 else -> TemaVerde
             }
 
+            // colores
 
-            // COLOR SCHEME
-
-
-            val colores = if (temaActual == "oscuro") {
+            val colores = if (
+                temaActual == "oscuro"
+            ) {
 
                 darkColorScheme(
 
@@ -98,10 +100,7 @@ class MainActivity : ComponentActivity() {
                 )
             }
 
-
-            // MATERIAL THEME GLOBAL
-
-
+            // tema global
 
             MaterialTheme(
 
@@ -113,23 +112,26 @@ class MainActivity : ComponentActivity() {
 
                     modifier = Modifier.fillMaxSize(),
 
-                    color = MaterialTheme.colorScheme.background
+                    color =
+                        MaterialTheme
+                            .colorScheme
+                            .background
 
                 ) {
 
                     Scaffold(
 
-                        modifier = Modifier.fillMaxSize(),
+                        modifier =
+                            Modifier.fillMaxSize(),
 
-                        containerColor = MaterialTheme.colorScheme.background
+                        containerColor =
+                            MaterialTheme
+                                .colorScheme
+                                .background
 
-                    ) { innerPadding ->
+                    ) {
 
-                        NavGraph(
-
-                            modifier = Modifier.padding(innerPadding)
-
-                        )
+                        NavGraph()
                     }
                 }
             }

@@ -1,52 +1,109 @@
 package com.example.inventario.data
-
 import android.content.Context
+
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
+
     entities = [
+
         usuario::class,
+
         Bodega::class,
+
         producto::class,
+
         categoria::class,
+
         Entrada::class,
+
         Salida::class,
+
         Factura::class
     ],
-    version = 6,
+
+    version = 10,
+
     exportSchema = false
 )
-abstract class appdatabase : RoomDatabase() {
-    abstract fun usuarioDao(): usuarioDao
-    abstract fun bodegaDao(): BodegaDao
-    abstract fun productoDao(): productoDao
-    abstract fun categoriaDao(): categoriaDao
-    abstract fun entradaDao(): EntradaDao
-    abstract fun salidaDao(): SalidaDao
-    abstract fun facturaDao(): FacturaDao
 
+abstract class appdatabase :
+    RoomDatabase() {
 
+    // usuarios
 
-companion object {
+    abstract fun usuarioDao():
+            usuarioDao
+
+    // bodegas
+
+    abstract fun bodegaDao():
+            BodegaDao
+
+    // productos
+
+    abstract fun productoDao():
+            productoDao
+
+    // categorias
+
+    abstract fun categoriaDao():
+            categoriaDao
+
+    // entradas
+
+    abstract fun entradaDao():
+            EntradaDao
+
+    // salidas
+
+    abstract fun salidaDao():
+            SalidaDao
+
+    // facturas
+
+    abstract fun facturaDao():
+            FacturaDao
+
+    companion object {
+
         @Volatile
-        private var INSTANCE: appdatabase? = null
 
-        fun getDatabase(context: Context): appdatabase {
-            return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    appdatabase::class.java,
-                    "app_database"
-                )
-                    .fallbackToDestructiveMigration()
-                    .build()
-                INSTANCE = instance
-                instance
-            }
+        private var INSTANCE:
+                appdatabase? = null
+
+        fun getDatabase(
+
+            context: Context
+
+        ): appdatabase {
+
+            return INSTANCE
+                ?: synchronized(this) {
+
+                    val instance =
+
+                        Room.databaseBuilder(
+
+                            context.applicationContext,
+
+                            appdatabase::class.java,
+
+                            "app_database"
+                        )
+
+                            // recrea db si cambia version
+
+                            .fallbackToDestructiveMigration()
+
+                            .build()
+
+                    INSTANCE = instance
+
+                    instance
+                }
         }
     }
 }

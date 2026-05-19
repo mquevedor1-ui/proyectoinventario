@@ -6,22 +6,76 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface EntradaDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(entrada: Entrada)
+
+    // insertar
+
+    @Insert(
+        onConflict =
+            OnConflictStrategy.REPLACE
+    )
+    suspend fun insert(
+
+        entrada: Entrada
+
+    ): Long
+
+    // actualizar
 
     @Update
-    suspend fun update(entrada: Entrada)
+    suspend fun update(
+
+        entrada: Entrada
+
+    )
+
+    // eliminar
 
     @Delete
-    suspend fun delete(entrada: Entrada)
+    suspend fun delete(
 
-    @Query("SELECT * FROM entradas ORDER BY fecha DESC")
-    fun getAllEntradas(): Flow<List<Entrada>>
+        entrada: Entrada
 
-    @Query("SELECT * FROM entradas WHERE productoId = :productoId")
-    fun getEntradasByProducto(productoId: Int): Flow<List<Entrada>>
+    )
+
+    // obtener todas
+
+    @Query(
+        "SELECT * FROM entradas ORDER BY fecha DESC"
+    )
+    fun getAllEntradas():
+            Flow<List<Entrada>>
+
+    // obtener por codigo
+
+    @Query(
+        "SELECT * FROM entradas WHERE codigo = :codigo"
+    )
+    fun getEntradasByProducto(
+
+        codigo: String
+
+    ): Flow<List<Entrada>>
+
+    // obtener por bodega
+
+    @Query(
+        "SELECT * FROM entradas WHERE bodegaId = :bodegaId ORDER BY fecha DESC"
+    )
+    fun getEntradasByBodega(
+
+        bodegaId: String
+
+    ): Flow<List<Entrada>>
+
+    // eliminar todo
+
+    @Query(
+        "DELETE FROM entradas"
+    )
+    suspend fun deleteAll()
 }

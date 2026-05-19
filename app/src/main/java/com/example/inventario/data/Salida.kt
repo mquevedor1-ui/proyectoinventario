@@ -1,15 +1,55 @@
 package com.example.inventario.data
-
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "salidas")
+@Entity(
+    tableName = "salidas"
+)
+
 data class Salida(
-    @PrimaryKey(autoGenerate = true)
+
+    @PrimaryKey(
+        autoGenerate = true
+    )
     val id: Int = 0,
-    val productoId: Int,
-    val cantidad: Int,
-    val fecha: String,
+
+    // codigo producto
+
+    val codigo: String = "",
+
+    // descripcion
+
+    val descripcion: String = "",
+
+    // categoria
+
+    val categoria: String = "",
+
+    // cantidad
+
+    val cantidad: Int = 0,
+
+    // responsable
+
+    val responsable: String = "",
+
+    // destino
+
     val destino: String = "",
-    val notas: String = ""
+
+    // vehiculo
+
+    val vehiculo: String = "",
+
+    // fecha
+
+    val fecha: String = "",
+
+    // notas
+
+    val notas: String = "",
+
+    // bodega
+
+    val bodegaId: String = ""
 )

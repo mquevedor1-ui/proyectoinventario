@@ -1,147 +1,48 @@
 package com.example.inventario.ui.menu
 
-
-
-
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Home
 
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 
 import androidx.compose.runtime.Composable
 
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 import androidx.navigation.NavController
 
 import com.example.inventario.viewModel.SessionManager
 
-// modelo
-data class Opcion(
+data class OpcionBodega(
 
     val titulo: String,
 
     val descripcion: String,
 
-    val color: Color,
+    val ruta: String,
 
-    val soloAdmin: Boolean,
-
-    val ruta: String
+    val color: Color
 )
 
-// lista
-@Composable
-fun listaOpciones(): List<Opcion> {
-
-    return listOf(
-
-        Opcion(
-            titulo = "Inventario General",
-            descripcion = "Ver productos",
-            color = MaterialTheme.colorScheme.primary,
-            soloAdmin = false,
-            ruta = "inventario"
-        ),
-
-        // admin
-        Opcion(
-            titulo = "Crear Producto",
-            descripcion = "Agregar nuevo",
-            color = MaterialTheme.colorScheme.primary,
-            soloAdmin = true,
-            ruta = "crearProducto"
-        ),
-
-        Opcion(
-            titulo = "Entradas",
-            descripcion = "Ver ingresos",
-            color = MaterialTheme.colorScheme.primary,
-            soloAdmin = false,
-            ruta = "entradas"
-        ),
-
-        Opcion(
-            titulo = "Salidas",
-            descripcion = "Ver salidas",
-            color = MaterialTheme.colorScheme.primary,
-            soloAdmin = false,
-            ruta = "salidas"
-        ),
-
-        Opcion(
-            titulo = "Facturas",
-            descripcion = "Ver facturas",
-            color = MaterialTheme.colorScheme.primary,
-            soloAdmin = false,
-            ruta = "facturas"
-        ),
-
-        Opcion(
-            titulo = "Existencias",
-            descripcion = "Stock actual",
-            color = MaterialTheme.colorScheme.primary,
-            soloAdmin = false,
-            ruta = "existencias"
-        ),
-
-        Opcion(
-            titulo = "Presupuesto",
-            descripcion = "Valor total",
-            color = MaterialTheme.colorScheme.primary,
-            soloAdmin = false,
-            ruta = "presupuesto"
-        ),
-
-        Opcion(
-            titulo = "Stock Bajo",
-            descripcion = "Alertas",
-            color = MaterialTheme.colorScheme.primary,
-            soloAdmin = false,
-            ruta = "stockBajo"
-        )
-    )
-}
-
-// pantalla
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BodegaMenuScreen(
 
@@ -151,229 +52,225 @@ fun BodegaMenuScreen(
 
 ) {
 
-    // admin
-    val esAdmin =
-        SessionManager.esAdmin()
+    val rol =
+        SessionManager.rolUsuario()
 
-    // filtro
-    val opcionesFiltradas =
-        listaOpciones().filter {
+    val opciones = mutableListOf(
 
-            !it.soloAdmin || esAdmin
-        }
-
-    // ui
-    Column(
-
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-
-                Brush.verticalGradient(
-
-                    listOf(
-
-                        MaterialTheme.colorScheme.background,
-
-                        MaterialTheme.colorScheme.surface
-                    )
-                )
-            )
-            .padding(16.dp)
-
-    ) {
-
-        // header
-        Row(
-
-            modifier = Modifier.fillMaxWidth(),
-
-            horizontalArrangement =
-                Arrangement.SpaceBetween,
-
-            verticalAlignment =
-                Alignment.CenterVertically
-
-        ) {
-
-            Column {
-
-                Text(
-
-                    text = "Sistema Inventario",
-
-                    fontSize = 24.sp,
-
-                    fontWeight = FontWeight.Bold,
-
-                    color =
-                        MaterialTheme.colorScheme.onBackground
-                )
-
-                Text(
-
-                    text = "Bodega: $bodegaId",
-
-                    color =
-                        MaterialTheme.colorScheme.onBackground
-                )
-            }
-
-            // regresar
-            IconButton(
-
-                onClick = {
-
-                    navController.popBackStack()
-                }
-
-            ) {
-
-                Icon(
-
-                    imageVector =
-                        Icons.Default.ArrowBack,
-
-                    contentDescription = null,
-
-                    tint =
-                        MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-
-        Spacer(
-            modifier = Modifier.height(20.dp)
-        )
-
-        // grid
-        LazyVerticalGrid(
-
-            columns = GridCells.Fixed(2),
-
-            verticalArrangement =
-                Arrangement.spacedBy(16.dp),
-
-            horizontalArrangement =
-                Arrangement.spacedBy(16.dp)
-
-        ) {
-
-            items(opcionesFiltradas) { opcion ->
-
-                CardOpcion(
-
-                    opcion = opcion,
-
-                    onClick = {
-
-                        navController.navigate(
-
-                            "${opcion.ruta}/$bodegaId"
-                        )
-                    }
-                )
-            }
-        }
-    }
-}
-
-// card
-@Composable
-fun CardOpcion(
-
-    opcion: Opcion,
-
-    onClick: () -> Unit
-
-) {
-
-    Card(
-
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable {
-
-                onClick()
-            },
-
-        shape = RoundedCornerShape(16.dp),
-
-        colors = CardDefaults.cardColors(
-
-            containerColor =
-                MaterialTheme.colorScheme.surface
+        OpcionBodega(
+            "Inventario General",
+            "Ver productos",
+            "inventario/$bodegaId",
+            Color(0xFF2962FF)
         ),
 
-        elevation = CardDefaults.cardElevation(6.dp)
+        OpcionBodega(
+            "Entradas",
+            "Ver ingresos",
+            "entradas/$bodegaId",
+            Color(0xFF00C853)
+        ),
+
+        OpcionBodega(
+            "Salidas",
+            "Ver salidas",
+            "salidas/$bodegaId",
+            Color(0xFFD50000)
+        ),
+
+        OpcionBodega(
+            "Existencias",
+            "Stock actual",
+            "existencias/$bodegaId",
+            Color(0xFFFF6D00)
+        ),
+
+        OpcionBodega(
+            "Stock Bajo",
+            "Alertas",
+            "stockBajo/$bodegaId",
+            Color(0xFFFF6D00)
+        )
+    )
+
+    // admin y encargado
+
+    if (
+
+        rol == "admin"
+        ||
+        rol == "encargado"
 
     ) {
 
-        Row(
+        opciones.add(
 
-            modifier = Modifier.padding(16.dp),
+            1,
 
-            verticalAlignment =
-                Alignment.CenterVertically
+            OpcionBodega(
+                "Crear Producto",
+                "Agregar nuevo",
+                "crearProducto/$bodegaId",
+                Color(0xFFAA00FF)
+            )
+        )
+
+        opciones.add(
+
+            OpcionBodega(
+                "Facturas",
+                "Ver facturas",
+                "facturas/$bodegaId",
+                Color(0xFFFFAB00)
+            )
+        )
+
+        opciones.add(
+
+            OpcionBodega(
+                "Presupuesto",
+                "Valor total",
+                "presupuesto/$bodegaId",
+                Color(0xFF6200EA)
+            )
+        )
+    }
+
+    Scaffold(
+
+        topBar = {
+
+            TopAppBar(
+
+                title = {
+
+                    Text(
+                        text = "Sistema Inventario"
+                    )
+                },
+
+                navigationIcon = {
+
+                    IconButton(
+
+                        onClick = {
+
+                            navController.popBackStack()
+                        }
+
+                    ) {
+
+                        Icon(
+
+                            imageVector =
+                                Icons.Default.ArrowBack,
+
+                            contentDescription =
+                                "Regresar"
+                        )
+                    }
+                }
+            )
+        }
+
+    ) { padding ->
+
+        Box(
+
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Color(0xFFEAF7EC)
+                )
+                .padding(padding)
 
         ) {
 
-            // icono
-            Box(
+            LazyVerticalGrid(
 
-                modifier = Modifier
-                    .size(50.dp)
-                    .background(
-
-                        opcion.color,
-
-                        CircleShape
+                columns =
+                    GridCells.Adaptive(
+                        minSize = 160.dp
                     ),
 
-                contentAlignment =
-                    Alignment.Center
+                contentPadding =
+                    PaddingValues(16.dp),
+
+                horizontalArrangement =
+                    Arrangement.spacedBy(16.dp),
+
+                verticalArrangement =
+                    Arrangement.spacedBy(16.dp)
 
             ) {
 
-                Icon(
+                items(opciones) { opcion ->
 
-                    imageVector =
-                        Icons.Default.Home,
+                    CardBodega(
 
-                    contentDescription = null,
+                        titulo =
+                            opcion.titulo,
 
-                    tint =
-                        MaterialTheme.colorScheme.onPrimary
-                )
-            }
+                        descripcion =
+                            opcion.descripcion,
 
-            Spacer(
-                modifier = Modifier.width(10.dp)
-            )
+                        color =
+                            opcion.color,
 
-            // textos
-            Column {
+                        ruta = when {
 
-                Text(
+                            opcion.ruta.contains(
+                                "inventario"
+                            ) ->
+                                "inventario"
 
-                    text = opcion.titulo,
+                            opcion.ruta.contains(
+                                "crearProducto"
+                            ) ->
+                                "crearProducto"
 
-                    fontWeight =
-                        FontWeight.Bold,
+                            opcion.ruta.contains(
+                                "entradas"
+                            ) ->
+                                "entradas"
 
-                    color =
-                        MaterialTheme.colorScheme.onSurface
-                )
+                            opcion.ruta.contains(
+                                "salidas"
+                            ) ->
+                                "salidas"
 
-                Text(
+                            opcion.ruta.contains(
+                                "facturas"
+                            ) ->
+                                "facturas"
 
-                    text = opcion.descripcion,
+                            opcion.ruta.contains(
+                                "existencias"
+                            ) ->
+                                "existencias"
 
-                    fontSize = 12.sp,
+                            opcion.ruta.contains(
+                                "presupuesto"
+                            ) ->
+                                "presupuesto"
 
-                    color =
-                        MaterialTheme.colorScheme.onSurface
-                )
+                            opcion.ruta.contains(
+                                "stockBajo"
+                            ) ->
+                                "stockBajo"
+
+                            else ->
+                                "inventario"
+                        },
+
+                        onClick = {
+
+                            navController.navigate(
+                                opcion.ruta
+                            )
+                        }
+                    )
+                }
             }
         }
     }

@@ -3,68 +3,284 @@ package com.example.inventario.viewModel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.inventario.data.Salida
 import com.example.inventario.data.FirebaseRepository
+import com.example.inventario.data.Salida
 import com.example.inventario.data.appdatabase
+import com.example.inventario.data.producto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
-class SalidaViewModel(application: Application) : AndroidViewModel(application) {
-    private val dao = appdatabase.getDatabase(application).salidaDao()
-    private val productoDao = appdatabase.getDatabase(application).productoDao()
-    private val firebaseRepo = FirebaseRepository()
+class SalidaViewModel(
 
-    val allSalidas: Flow<List<Salida>> = dao.getAllSalidas()
+    application: Application
+
+) : AndroidViewModel(application) {
+
+    // database
+
+    private val db =
+        appdatabase.getDatabase(application)
+
+    // dao
+
+    private val dao =
+        db.salidaDao()
+
+    private val productoDao =
+        db.productoDao()
+
+    // firebase
+
+    private val firebaseRepo =
+        FirebaseRepository()
+
+    // lista
+
+    val allSalidas:
+            Flow<List<Salida>> =
+        dao.getAllSalidas()
+
+    // sincronizar firebase
 
     fun sincronizarDesdeFirebase() {
-        viewModelScope.launch(Dispatchers.IO) {
+
+        viewModelScope.launch(
+            Dispatchers.IO
+        ) {
+
             try {
-                val salidasNube = firebaseRepo.obtenerSalidas()
+
+                val salidasNube =
+                    firebaseRepo.obtenerSalidas()
+
                 salidasNube.forEach { salida ->
+
                     dao.insert(salida)
                 }
+
             } catch (e: Exception) {
+
                 e.printStackTrace()
             }
         }
     }
 
-    fun agregarSalida(salida: Salida) {
-        viewModelScope.launch(Dispatchers.IO) {
-            // 1. Guardar salida localmente
-            dao.insert(salida)
-            
-            // 2. Actualizar stock del producto
-            val producto = productoDao.obtenerProductoPorId(salida.productoId)
-            if (producto != null) {
-                val nuevaCantidad = producto.cantidad - salida.cantidad
-                val productoActualizado = producto.copy(cantidad = nuevaCantidad)
-                productoDao.actualizar(productoActualizado)
-                firebaseRepo.guardarProducto(productoActualizado)
+    // agregar salida
+
+    fun agregarSalida(
+
+        salida: Salida
+
+    ) {
+
+        viewModelScope.launch(
+
+            Dispatchers.IO
+
+        ) {
+
+            try {
+
+                // buscar producto
+
+                val producto =
+
+                    productoDao
+                        .obtenerProductoPorCodigo(
+
+                            salida.codigo
+                        )
+
+                // validar producto
+
+                if (producto != null) {
+
+                    // validar stock
+
+                    if (
+
+                        producto.cantidad >=
+                        salida.cantidad
+
+                    ) {
+
+                        // guardar salida
+
+                        val idGenerado =
+
+                            dao.insert(
+                                salida
+                            )
+
+                        val salidaConId =
+
+                            salida.copy(
+
+                                id =
+                                    idGenerado.toInt()
+                            )
+
+                        // descontar stock
+
+                        val nuevaCantidad =
+
+                            producto.cantidad -
+                                    salida.cantidad
+
+                        val productoActualizado =
+
+                            producto.copy(
+
+                                cantidad =
+                                    nuevaCantidad
+                            )
+
+                        // actualizar producto
+
+                        productoDao.actualizar(
+                            productoActualizado
+                        )
+
+                        // firebase producto
+
+                        firebaseRepo
+                            .guardarProducto(
+                                productoActualizado
+                            )
+
+                        // firebase salida
+
+                        firebaseRepo
+                            .guardarSalida(
+                                salidaConId
+                            )
+                    }
+                }
+
+            } catch (e: Exception) {
+
+                e.printStackTrace()
             }
-            
-            // 3. Guardar en Firebase
-            firebaseRepo.guardarSalida(salida)
         }
     }
 
-    fun eliminarSalida(salida: Salida) {
-        viewModelScope.launch(Dispatchers.IO) {
-            // 1. Revertir stock
-            val producto = productoDao.obtenerProductoPorId(salida.productoId)
-            if (producto != null) {
-                val nuevaCantidad = producto.cantidad + salida.cantidad
-                val productoActualizado = producto.copy(cantidad = nuevaCantidad)
-                productoDao.actualizar(productoActualizado)
-                firebaseRepo.guardarProducto(productoActualizado)
+    // buscar producto
+
+    suspend fun buscarProductoPorCodigo(
+
+        codigo: String
+
+    ): producto? {
+
+        return productoDao
+            .obtenerProductoPorCodigo(
+                codigo
+            )
+    }
+
+    // eliminar salida
+
+    fun eliminarSalida(
+
+        salida: Salida
+
+    ) {
+
+        viewModelScope.launch(
+
+            Dispatchers.IO
+
+        ) {
+
+            try {
+
+                // buscar producto
+
+                val producto =
+
+                    productoDao
+                        .obtenerProductoPorCodigo(
+
+                            salida.codigo
+                        )
+
+                if (producto != null) {
+
+                    // regresar stock
+
+                    val nuevaCantidad =
+
+                        producto.cantidad +
+                                salida.cantidad
+
+                    val productoActualizado =
+
+                        producto.copy(
+
+                            cantidad =
+                                nuevaCantidad
+                        )
+
+                    // actualizar producto
+
+                    productoDao.actualizar(
+                        productoActualizado
+                    )
+
+                    // firebase producto
+
+                    firebaseRepo
+                        .guardarProducto(
+                            productoActualizado
+                        )
+                }
+
+                // eliminar salida
+
+                dao.delete(
+                    salida
+                )
+
+                // firebase salida
+
+                firebaseRepo
+                    .eliminarSalida(
+                        salida.id
+                    )
+
+            } catch (e: Exception) {
+
+                e.printStackTrace()
             }
-            
-            // 2. Eliminar localmente
-            dao.delete(salida)
-            
-            // 3. Eliminar de Firebase
-            firebaseRepo.eliminarSalida(salida.id)
+        }
+    }
+
+    // obtener salidas por bodega
+
+    fun obtenerSalidasPorBodega(
+
+        bodegaId: String
+
+    ): Flow<List<Salida>> {
+
+        return dao
+            .getSalidasByBodega(
+                bodegaId
+            )
+    }
+
+    // eliminar todo
+
+    fun eliminarTodo() {
+
+        viewModelScope.launch(
+
+            Dispatchers.IO
+
+        ) {
+
+            dao.deleteAll()
         }
     }
 }

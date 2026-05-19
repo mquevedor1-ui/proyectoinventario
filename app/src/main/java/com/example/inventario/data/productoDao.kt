@@ -1,5 +1,4 @@
 package com.example.inventario.data
-
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -13,7 +12,9 @@ import kotlinx.coroutines.flow.Flow
 interface productoDao {
 
  // insertar
+
  @Insert(
+
   onConflict =
    OnConflictStrategy.REPLACE
  )
@@ -21,9 +22,10 @@ interface productoDao {
 
   producto: producto
 
- )
+ ): Long
 
  // actualizar
+
  @Update
  suspend fun actualizar(
 
@@ -32,6 +34,7 @@ interface productoDao {
  )
 
  // eliminar
+
  @Delete
  suspend fun eliminar(
 
@@ -40,8 +43,10 @@ interface productoDao {
  )
 
  // obtener productos
+
  @Query(
-  "SELECT * FROM productos WHERE bodegaId = :bodegaId"
+
+  "SELECT * FROM productos WHERE bodegaId = :bodegaId ORDER BY descripcion ASC"
  )
  fun obtenerProductos(
 
@@ -49,9 +54,23 @@ interface productoDao {
 
  ): Flow<List<producto>>
 
- // obtener producto por id
+ // obtener producto por codigo
+
  @Query(
-  "SELECT * FROM productos WHERE id = :id"
+
+  "SELECT * FROM productos WHERE codigo = :codigo LIMIT 1"
+ )
+ suspend fun obtenerProductoPorCodigo(
+
+  codigo: String
+
+ ): producto?
+
+ // obtener producto por id
+
+ @Query(
+
+  "SELECT * FROM productos WHERE id = :id LIMIT 1"
  )
  suspend fun obtenerProductoPorId(
 
@@ -59,7 +78,23 @@ interface productoDao {
 
  ): producto?
 
- // obtener ultimo codigo por prefijo
- @Query("SELECT codigo FROM productos WHERE prefijoCategoria = :prefijo ORDER BY codigo DESC LIMIT 1")
- suspend fun obtenerUltimoCodigoPorPrefijo(prefijo: String): String?
+ // obtener ultimo codigo
+
+ @Query(
+
+  "SELECT codigo FROM productos WHERE prefijoCategoria = :prefijo ORDER BY codigo DESC LIMIT 1"
+ )
+ suspend fun obtenerUltimoCodigoPorPrefijo(
+
+  prefijo: String
+
+ ): String?
+
+ // eliminar todo
+
+ @Query(
+
+  "DELETE FROM productos"
+ )
+ suspend fun eliminarTodo()
 }

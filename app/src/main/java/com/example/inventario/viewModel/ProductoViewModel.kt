@@ -1,82 +1,318 @@
 package com.example.inventario.viewModel
-
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+
 import com.example.inventario.data.FirebaseRepository
+import com.example.inventario.data.InventoryRepository
 import com.example.inventario.data.appdatabase
 import com.example.inventario.data.producto
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class ProductoViewModel(
+
     application: Application
+
 ) : AndroidViewModel(application) {
 
-    private val dao = appdatabase.getDatabase(application).productoDao()
-    private val firebaseRepo = FirebaseRepository()
+    // database
 
-    // Obtener productos
-    fun obtenerProductos(bodegaId: String) = dao.obtenerProductos(bodegaId)
+    private val db =
 
-    // Generar el siguiente código secuencial (Ej: A0001 -> A0002)
-    suspend fun generarSiguienteCodigo(prefijo: String): String {
-        val ultimoCodigo = dao.obtenerUltimoCodigoPorPrefijo(prefijo)
-        return if (ultimoCodigo == null) {
+        appdatabase
+            .getDatabase(application)
+
+    // repository
+
+    private val repository =
+
+        InventoryRepository(
+
+            bodegaDao =
+                db.bodegaDao(),
+
+            productoDao =
+                db.productoDao(),
+
+            categoriaDao =
+                db.categoriaDao(),
+
+            firebaseRepository =
+                FirebaseRepository()
+        )
+
+    // dao
+
+    private val dao =
+        db.productoDao()
+
+    // obtener productos
+
+    fun obtenerProductos(
+
+        bodegaId: String
+
+    ) = repository
+        .getProductos(
+            bodegaId
+        )
+
+    // generar codigo
+
+    suspend fun generarSiguienteCodigo(
+
+        prefijo: String
+
+    ): String {
+
+        val ultimoCodigo =
+
+            dao.obtenerUltimoCodigoPorPrefijo(
+                prefijo
+            )
+
+        return if (
+
+            ultimoCodigo == null
+
+        ) {
+
             "${prefijo}0001"
+
         } else {
+
             try {
-                // Extraer la parte numérica (asumiendo que el prefijo es de longitud variable)
-                val numeroStr = ultimoCodigo.removePrefix(prefijo)
-                val siguienteNumero = numeroStr.toInt() + 1
-                // Formatear con ceros a la izquierda (4 dígitos)
-                prefijo + siguienteNumero.toString().padStart(4, '0')
-            } catch (e: Exception) {
-                // Si hay error en el formato, empezamos de nuevo
+
+                val numeroStr =
+
+                    ultimoCodigo
+                        .removePrefix(
+                            prefijo
+                        )
+
+                val siguienteNumero =
+
+                    numeroStr
+                        .toInt() + 1
+
+                prefijo +
+                        siguienteNumero
+                            .toString()
+                            .padStart(
+                                4,
+                                '0'
+                            )
+
+            } catch (
+
+                e: Exception
+
+            ) {
+
                 "${prefijo}0001"
             }
         }
     }
 
-    // Sincronizar desde Firebase
-    fun sincronizarDesdeFirebase(bodegaId: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val productosNube = firebaseRepo.obtenerProductos(bodegaId)
-                productosNube.forEach { prod ->
-                    dao.insertar(prod)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
+    // sincronizar firebase
+
+    fun sincronizarDesdeFirebase(
+
+        bodegaId: String
+
+    ) {
+
+        viewModelScope.launch(
+
+            Dispatchers.IO
+
+        ) {
+
+            repository
+                .sincronizarProductos(
+                    bodegaId
+                )
+        }
+    }
+
+    // obtener producto por id
+
+    suspend fun obtenerProductoPorId(
+
+        id: Int
+
+    ): producto? {
+
+        return dao
+            .obtenerProductoPorId(
+                id
+            )
+    }
+
+    // obtener producto por codigo
+
+    suspend fun obtenerProductoPorCodigo(
+
+        codigo: String
+
+    ): producto? {
+
+        return dao
+            .obtenerProductoPorCodigo(
+                codigo
+            )
+    }
+
+    // insertar producto
+
+    fun agregarProducto(
+
+        producto: producto
+
+    ) {
+
+        viewModelScope.launch(
+
+            Dispatchers.IO
+
+        ) {
+
+            repository
+                .insertProducto(
+                    producto
+                )
+        }
+    }
+
+    // actualizar producto
+
+    fun actualizarProducto(
+
+        producto: producto
+
+    ) {
+
+        viewModelScope.launch(
+
+            Dispatchers.IO
+
+        ) {
+
+            repository
+                .actualizarProducto(
+                    producto
+                )
+        }
+    }
+
+    // eliminar producto
+
+    fun eliminarProducto(
+
+        producto: producto
+
+    ) {
+
+        viewModelScope.launch(
+
+            Dispatchers.IO
+
+        ) {
+
+            repository
+                .eliminarProducto(
+                    producto
+                )
+        }
+    }
+
+    // =========================
+    // SUMAR CANTIDAD
+    // =========================
+
+    fun sumarCantidadProducto(
+
+        codigo: String,
+
+        cantidadEntrada: Int
+
+    ) {
+
+        viewModelScope.launch(
+
+            Dispatchers.IO
+
+        ) {
+
+            val productoActual =
+
+                dao.obtenerProductoPorCodigo(
+                    codigo
+                )
+
+            productoActual?.let {
+
+                val productoActualizado =
+
+                    it.copy(
+
+                        cantidad =
+                            it.cantidad + cantidadEntrada
+                    )
+
+                repository
+                    .actualizarProducto(
+                        productoActualizado
+                    )
             }
         }
     }
 
-    suspend fun obtenerProductoPorId(id: Int): producto? {
-        return dao.obtenerProductoPorId(id)
-    }
+    // =========================
+    // RESTAR CANTIDAD
+    // =========================
 
-    // Insertar producto -> Local + Firebase
-    fun agregarProducto(producto: producto) {
-        viewModelScope.launch(Dispatchers.IO) {
-            dao.insertar(producto)
-            firebaseRepo.guardarProducto(producto)
-        }
-    }
+    fun restarCantidadProducto(
 
-    // Actualizar producto -> Local + Firebase
-    fun actualizarProducto(producto: producto) {
-        viewModelScope.launch(Dispatchers.IO) {
-            dao.actualizar(producto)
-            firebaseRepo.guardarProducto(producto)
-        }
-    }
+        codigo: String,
 
-    // Eliminar producto -> Local + Firebase
-    fun eliminarProducto(producto: producto) {
-        viewModelScope.launch(Dispatchers.IO) {
-            dao.eliminar(producto)
-            firebaseRepo.eliminarProducto(producto.id)
+        cantidadSalida: Int
+
+    ) {
+
+        viewModelScope.launch(
+
+            Dispatchers.IO
+
+        ) {
+
+            val productoActual =
+
+                dao.obtenerProductoPorCodigo(
+                    codigo
+                )
+
+            productoActual?.let {
+
+                val nuevaCantidad =
+
+                    (it.cantidad - cantidadSalida)
+                        .coerceAtLeast(0)
+
+                val productoActualizado =
+
+                    it.copy(
+
+                        cantidad = nuevaCantidad
+                    )
+
+                repository
+                    .actualizarProducto(
+                        productoActualizado
+                    )
+            }
         }
     }
 }

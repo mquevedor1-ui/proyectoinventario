@@ -2,6 +2,7 @@ package com.example.inventario.ui.login
 
 
 
+
 import android.app.Application
 import android.widget.Toast
 
@@ -46,7 +47,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -81,9 +81,7 @@ fun LoginScreen(
             )
     )
 
-    // =========================
-    // ESTADOS
-    // =========================
+    // estados
 
     var isLogin by remember {
 
@@ -162,9 +160,7 @@ fun LoginScreen(
 
                     ) {
 
-                        // =========================
-                        // ICONO
-                        // =========================
+                        // icono
 
                         Box(
 
@@ -194,9 +190,7 @@ fun LoginScreen(
                             modifier = Modifier.height(10.dp)
                         )
 
-                        // =========================
-                        // TITULO
-                        // =========================
+                        // titulo
 
                         Text(
 
@@ -224,9 +218,7 @@ fun LoginScreen(
                             modifier = Modifier.height(16.dp)
                         )
 
-                        // =========================
-                        // LOGIN / REGISTRO
-                        // =========================
+                        // botones login y registro
 
                         Row(
 
@@ -240,8 +232,6 @@ fun LoginScreen(
                                 )
                                 .padding(4.dp)
                         ) {
-
-                            // LOGIN
 
                             Button(
 
@@ -280,8 +270,6 @@ fun LoginScreen(
                                         MaterialTheme.colorScheme.onBackground
                                 )
                             }
-
-                            // REGISTRO
 
                             Button(
 
@@ -326,9 +314,7 @@ fun LoginScreen(
                             modifier = Modifier.height(16.dp)
                         )
 
-                        // =========================
-                        // USUARIO
-                        // =========================
+                        // usuario
 
                         OutlinedTextField(
 
@@ -362,9 +348,7 @@ fun LoginScreen(
                             modifier = Modifier.height(10.dp)
                         )
 
-                        // =========================
-                        // PASSWORD
-                        // =========================
+                        // password
 
                         OutlinedTextField(
 
@@ -394,9 +378,7 @@ fun LoginScreen(
                             shape = RoundedCornerShape(12.dp)
                         )
 
-                        // =========================
-                        // CONFIRMAR PASSWORD
-                        // =========================
+                        // confirmar password
 
                         if (!isLogin) {
 
@@ -437,9 +419,7 @@ fun LoginScreen(
                             modifier = Modifier.height(16.dp)
                         )
 
-                        // =========================
-                        // BOTON
-                        // =========================
+                        // boton entrar
 
                         Button(
 
@@ -465,9 +445,7 @@ fun LoginScreen(
 
                                 scope.launch {
 
-                                    // =========================
-                                    // LOGIN
-                                    // =========================
+                                    // login
 
                                     if (isLogin) {
 
@@ -479,7 +457,8 @@ fun LoginScreen(
 
                                         if (user != null) {
 
-                                            // GUARDAR SESION
+                                            // guardar sesion
+
                                             SessionManager.login(user)
 
                                             Toast.makeText(
@@ -492,7 +471,15 @@ fun LoginScreen(
 
                                             ).show()
 
-                                            navController.navigate("menu")
+                                            // cambiado menu por bodegas
+
+                                            navController.navigate("menuP") {
+
+                                                popUpTo("login") {
+
+                                                    inclusive = true
+                                                }
+                                            }
 
                                         } else {
 
@@ -509,9 +496,7 @@ fun LoginScreen(
 
                                     }
 
-                                    // =========================
-                                    // REGISTRO
-                                    // =========================
+                                    // registro
 
                                     else {
 
@@ -550,7 +535,6 @@ fun LoginScreen(
 
                                             ).show()
 
-                                            // LIMPIAR
                                             usuario = ""
                                             password = ""
                                             confirmPassword = ""

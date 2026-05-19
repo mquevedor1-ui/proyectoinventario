@@ -1,7 +1,6 @@
 package com.example.inventario.data
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 
 class InventoryRepository(
     private val bodegaDao: BodegaDao,
@@ -9,7 +8,8 @@ class InventoryRepository(
     private val categoriaDao: categoriaDao,
     private val firebaseRepository: FirebaseRepository
 ) {
-    // Bodegas
+
+    // bodegas
     val allBodegas: Flow<List<Bodega>> = bodegaDao.obtenerTodas()
 
     suspend fun refreshBodegas() {
@@ -24,18 +24,45 @@ class InventoryRepository(
         firebaseRepository.guardarBodega(bodega)
     }
 
-    // Productos
-    fun getProductos(bodegaId: String): Flow<List<producto>> = productoDao.obtenerProductos(bodegaId)
+    // productos
+    fun getProductos(bodegaId: String): Flow<List<producto>> =
+        productoDao.obtenerProductos(bodegaId)
 
     suspend fun insertProducto(producto: producto) {
-        productoDao.insertar(producto)
-        // TODO: Sync producto to Firebase if needed
+        val idGenerado = productoDao.insertar(producto)
+        val productoConId = producto.copy(id = idGenerado.toInt())
+        firebaseRepository.guardarProducto(productoConId)
     }
 
-    // Categorias
+    suspend fun actualizarProducto(producto: producto) {
+        productoDao.actualizar(producto)
+        firebaseRepository.guardarProducto(producto)
+    }
+
+    suspend fun eliminarProducto(producto: producto) {
+        productoDao.eliminar(producto)
+        firebaseRepository.eliminarProducto(producto.codigo) // Usar codigo como key en Firebase
+    }
+
+    suspend fun sincronizarProductos(bodegaId: String) {
+        val productosFirebase = firebaseRepository.obtenerProductos(bodegaId)
+        productosFirebase.forEach { producto ->
+            productoDao.insertar(producto)
+        }
+    }
+
+    // categorias
     val allCategorias: Flow<List<categoria>> = categoriaDao.obtenerCategorias()
 
     suspend fun insertCategoria(categoria: categoria) {
         categoriaDao.insertar(categoria)
+        firebaseRepository.guardarCategoria(categoria)
+    }
+
+    suspend fun sincronizarCategorias() {
+        val categoriasFirebase = firebaseRepository.obtenerCategorias()
+        categoriasFirebase.forEach { categoria ->
+            categoriaDao.insertar(categoria)
+        }
     }
 }

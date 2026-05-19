@@ -76,11 +76,8 @@ fun CardCrearBodega(
 
         ) {
 
-            // =========================
             // ICONO
-            // =========================
-
-            Box(
+                      Box(
 
                 modifier = Modifier
                     .size(60.dp)
@@ -110,9 +107,9 @@ fun CardCrearBodega(
                 modifier = Modifier.height(10.dp)
             )
 
-            // =========================
+
             // TEXTO
-            // =========================
+
 
             Text(
 

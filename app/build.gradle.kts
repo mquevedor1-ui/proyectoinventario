@@ -1,132 +1,371 @@
 plugins {
+
     alias(libs.plugins.android.application)
+
     alias(libs.plugins.kotlin.android)
+
     alias(libs.plugins.kotlin.compose)
+
     alias(libs.plugins.ksp)
+
     id("com.google.gms.google-services")
 }
 
-// Bloque de configuración global para resolver conflictos de Bouncy Castle
+// resolver conflictos bouncycastle
+
 configurations.all {
+
     resolutionStrategy {
-        force("org.bouncycastle:bcprov-jdk18on:1.78.1")
-        force("org.bouncycastle:bcpkix-jdk18on:1.78.1")
-        force("org.bouncycastle:bcutil-jdk18on:1.78.1")
+
+        force(
+            "org.bouncycastle:bcprov-jdk18on:1.78.1"
+        )
+
+        force(
+            "org.bouncycastle:bcpkix-jdk18on:1.78.1"
+        )
+
+        force(
+            "org.bouncycastle:bcutil-jdk18on:1.78.1"
+        )
 
         dependencySubstitution {
-            substitute(module("org.bouncycastle:bcprov-jdk15to18")).using(module("org.bouncycastle:bcprov-jdk18on:1.78.1"))
-            substitute(module("org.bouncycastle:bcprov-jdk15on")).using(module("org.bouncycastle:bcprov-jdk18on:1.78.1"))
-            substitute(module("org.bouncycastle:bcutil-jdk15to18")).using(module("org.bouncycastle:bcutil-jdk18on:1.78.1"))
-            substitute(module("org.bouncycastle:bcpkix-jdk15to18")).using(module("org.bouncycastle:bcpkix-jdk18on:1.78.1"))
+
+            substitute(
+                module(
+                    "org.bouncycastle:bcprov-jdk15to18"
+                )
+            ).using(
+                module(
+                    "org.bouncycastle:bcprov-jdk18on:1.78.1"
+                )
+            )
+
+            substitute(
+                module(
+                    "org.bouncycastle:bcprov-jdk15on"
+                )
+            ).using(
+                module(
+                    "org.bouncycastle:bcprov-jdk18on:1.78.1"
+                )
+            )
+
+            substitute(
+                module(
+                    "org.bouncycastle:bcutil-jdk15to18"
+                )
+            ).using(
+                module(
+                    "org.bouncycastle:bcutil-jdk18on:1.78.1"
+                )
+            )
+
+            substitute(
+                module(
+                    "org.bouncycastle:bcpkix-jdk15to18"
+                )
+            ).using(
+                module(
+                    "org.bouncycastle:bcpkix-jdk18on:1.78.1"
+                )
+            )
         }
     }
-    // Exclusiones preventivas en todo el proyecto
-    exclude(group = "org.bouncycastle", module = "bcprov-jdk15to18")
-    exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
-    exclude(group = "org.bouncycastle", module = "bcprov-ext-jdk15to18")
+
+    exclude(
+        group = "org.bouncycastle",
+        module = "bcprov-jdk15to18"
+    )
+
+    exclude(
+        group = "org.bouncycastle",
+        module = "bcprov-jdk15on"
+    )
+
+    exclude(
+        group = "org.bouncycastle",
+        module = "bcprov-ext-jdk15to18"
+    )
 }
 
 android {
-    namespace = "com.example.inventario"
+
+    namespace =
+        "com.example.inventario"
+
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.inventario"
+
+        applicationId =
+            "com.example.inventario"
+
         minSdk = 26
+
         targetSdk = 35
+
         versionCode = 1
+
         versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner =
+            "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
+
         release {
+
             isMinifyEnabled = false
+
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
+
+                getDefaultProguardFile(
+                    "proguard-android-optimize.txt"
+                ),
+
                 "proguard-rules.pro"
             )
         }
     }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-        isCoreLibraryDesugaringEnabled = true
+
+        sourceCompatibility =
+            JavaVersion.VERSION_17
+
+        targetCompatibility =
+            JavaVersion.VERSION_17
+
+        isCoreLibraryDesugaringEnabled =
+            true
     }
+
     kotlinOptions {
+
         jvmTarget = "17"
     }
+
     buildFeatures {
+
         compose = true
     }
+
     packaging {
+
         resources {
-            excludes += "META-INF/DEPENDENCIES"
-            excludes += "META-INF/LICENSE*"
-            excludes += "META-INF/NOTICE*"
-            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
-            excludes += "META-INF/versions/11/OSGI-INF/MANIFEST.MF"
-            
-            // Si la clase LICENSE sigue causando conflicto, intentamos ignorarla
-            pickFirsts += "org/bouncycastle/LICENSE.class"
-            pickFirsts += "org/bouncycastle/LICENSE"
+
+            excludes +=
+                "META-INF/DEPENDENCIES"
+
+            excludes +=
+                "META-INF/LICENSE*"
+
+            excludes +=
+                "META-INF/NOTICE*"
+
+            excludes +=
+                "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+
+            excludes +=
+                "META-INF/versions/11/OSGI-INF/MANIFEST.MF"
+
+            pickFirsts +=
+                "org/bouncycastle/LICENSE.class"
+
+            pickFirsts +=
+                "org/bouncycastle/LICENSE"
         }
     }
 }
 
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.3")
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.foundation.layout)
-    implementation(libs.androidx.compose.foundation)
-    implementation(libs.play.services.cast.framework)
-    
-    // Identity JVM suele traer versiones viejas de Bouncy Castle
-    implementation(libs.identity.jvm) {
-        exclude(group = "org.bouncycastle")
+
+    // material
+
+    implementation(
+        libs.androidx.material3
+    )
+
+    implementation(
+        libs.androidx.compose.material3
+    )
+
+    implementation(
+        "androidx.compose.material3:material3-window-size-class"
+    )
+
+    implementation(
+        "androidx.compose.material:material-icons-extended"
+    )
+
+    // core
+
+    implementation(
+        libs.androidx.core.ktx
+    )
+
+    implementation(
+        libs.androidx.lifecycle.runtime.ktx
+    )
+
+    implementation(
+        "androidx.lifecycle:lifecycle-runtime-compose:2.7.0"
+    )
+
+    implementation(
+        "androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0"
+    )
+
+    implementation(
+        libs.androidx.activity.compose
+    )
+
+    // compose
+
+    implementation(
+        platform(
+            libs.androidx.compose.bom
+        )
+    )
+
+    implementation(
+        libs.androidx.compose.ui
+    )
+
+    implementation(
+        libs.androidx.compose.ui.graphics
+    )
+
+    implementation(
+        libs.androidx.compose.ui.tooling.preview
+    )
+
+    implementation(
+        libs.androidx.compose.foundation
+    )
+
+    implementation(
+        libs.androidx.compose.foundation.layout
+    )
+
+    // navigation
+
+    implementation(
+        libs.androidx.navigation.compose
+    )
+
+    // room
+
+    implementation(
+        libs.androidx.room.runtime
+    )
+
+    ksp(
+        libs.androidx.room.compiler
+    )
+
+    implementation(
+        libs.androidx.room.ktx
+    )
+
+    // firebase
+
+    implementation(
+        platform(
+            "com.google.firebase:firebase-bom:33.7.0"
+        )
+    )
+
+    implementation(
+        "com.google.firebase:firebase-database"
+    )
+
+    implementation(
+        "com.google.firebase:firebase-auth"
+    )
+
+    implementation(
+        "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0"
+    )
+
+    // excel
+
+    implementation(
+        "org.apache.poi:poi:5.2.5"
+    ) {
+
+        exclude(
+            group = "org.bouncycastle"
+        )
     }
 
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    debugImplementation(libs.androidx.compose.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    implementation(
+        "org.apache.poi:poi-ooxml:5.2.5"
+    ) {
 
-    implementation(libs.androidx.room.runtime)
-    ksp(libs.androidx.room.compiler)
-    implementation(libs.androidx.room.ktx)
-    implementation(libs.androidx.navigation.compose)
-    
-    // Firebase
-    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
-    implementation("com.google.firebase:firebase-database")
-    implementation("com.google.firebase:firebase-auth")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-    implementation("androidx.compose.material:material-icons-extended")
+        exclude(
+            group = "org.bouncycastle"
+        )
+    }
 
-    // Reportes (Excel y PDF) - Excluimos Bouncy Castle para evitar duplicados
-    implementation("org.apache.poi:poi:5.2.5") {
-        exclude(group = "org.bouncycastle")
+    // pdf
+
+    implementation(
+        "com.tom-roush:pdfbox-android:2.0.27.0"
+    ) {
+
+        exclude(
+            group = "org.bouncycastle"
+        )
     }
-    implementation("org.apache.poi:poi-ooxml:5.2.5") {
-        exclude(group = "org.bouncycastle")
-    }
-    implementation("com.tom-roush:pdfbox-android:2.0.27.0") {
-        exclude(group = "org.bouncycastle")
-    }
-    
-    // Agregamos manualmente la versión única y moderna que queremos
-    implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
-    implementation("org.bouncycastle:bcpkix-jdk18on:1.78.1")
+
+    // bouncycastle
+
+    implementation(
+        "org.bouncycastle:bcprov-jdk18on:1.78.1"
+    )
+
+    implementation(
+        "org.bouncycastle:bcpkix-jdk18on:1.78.1"
+    )
+
+    // desugar
+
+    coreLibraryDesugaring(
+        "com.android.tools:desugar_jdk_libs:2.1.3"
+    )
+
+    // tests
+
+    testImplementation(
+        libs.junit
+    )
+
+    androidTestImplementation(
+        libs.androidx.junit
+    )
+
+    androidTestImplementation(
+        libs.androidx.espresso.core
+    )
+
+    androidTestImplementation(
+        platform(
+            libs.androidx.compose.bom
+        )
+    )
+
+    androidTestImplementation(
+        libs.androidx.compose.ui.test.junit4
+    )
+
+    debugImplementation(
+        libs.androidx.compose.ui.tooling
+    )
+
+    debugImplementation(
+        libs.androidx.compose.ui.test.manifest
+    )
 }

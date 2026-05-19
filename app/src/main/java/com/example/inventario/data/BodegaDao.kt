@@ -2,6 +2,7 @@ package com.example.inventario.data
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 
@@ -14,7 +15,7 @@ interface BodegaDao {
     // INSERTAR
     // =========================
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertar(
         bodega: Bodega
     ): Long
