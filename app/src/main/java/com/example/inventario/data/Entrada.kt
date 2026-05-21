@@ -45,6 +45,12 @@ data class Entrada(
 
     val costoUnitario: Double = 0.0,
 
+    // stock minimo
+    val stockMinimo: Int = 0,
+
+    // numero de factura
+    val numeroFactura: String = "",
+
     // fecha
 
     val fecha: String = "",
@@ -55,5 +61,9 @@ data class Entrada(
 
     // bodega
 
-    val bodegaId: String = ""
+    val bodegaId: String = "",
+
+    // Papelera
+    val isDeleted: Boolean = false,
+    val deletionDate: Long? = null
 )

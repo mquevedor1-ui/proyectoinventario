@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface usuarioDao {
@@ -44,11 +45,17 @@ interface usuarioDao {
     ): usuario?
 
     // lista
-    @Query(
-        "SELECT * FROM usuario"
-    )
-    suspend fun obtenerTodos():
-            List<usuario>
+    @Query("SELECT * FROM usuario WHERE isDeleted = 0")
+    suspend fun obtenerTodos(): List<usuario>
+
+    @Query("SELECT * FROM usuario WHERE isDeleted = 1")
+    fun obtenerPapelera(): Flow<List<usuario>>
+
+    @Query("DELETE FROM usuario WHERE isDeleted = 1 AND deletionDate < :timestamp")
+    suspend fun purgarAntiguos(timestamp: Long)
+
+    @Query("DELETE FROM usuario WHERE user = :user")
+    suspend fun eliminarPermanente(user: String)
 
     // actualizar
     @Update

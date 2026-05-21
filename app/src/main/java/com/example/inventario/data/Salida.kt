@@ -41,6 +41,9 @@ data class Salida(
 
     val vehiculo: String = "",
 
+    // costo unitario (al momento de la salida)
+    val costoUnitario: Double = 0.0,
+
     // fecha
 
     val fecha: String = "",
@@ -51,5 +54,9 @@ data class Salida(
 
     // bodega
 
-    val bodegaId: String = ""
+    val bodegaId: String = "",
+
+    // Papelera
+    val isDeleted: Boolean = false,
+    val deletionDate: Long? = null
 )

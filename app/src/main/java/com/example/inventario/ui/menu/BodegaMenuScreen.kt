@@ -79,13 +79,6 @@ fun BodegaMenuScreen(
         ),
 
         OpcionBodega(
-            "Existencias",
-            "Stock actual",
-            "existencias/$bodegaId",
-            Color(0xFFFF6D00)
-        ),
-
-        OpcionBodega(
             "Stock Bajo",
             "Alertas",
             "stockBajo/$bodegaId",
@@ -243,11 +236,6 @@ fun BodegaMenuScreen(
                                 "facturas"
                             ) ->
                                 "facturas"
-
-                            opcion.ruta.contains(
-                                "existencias"
-                            ) ->
-                                "existencias"
 
                             opcion.ruta.contains(
                                 "presupuesto"

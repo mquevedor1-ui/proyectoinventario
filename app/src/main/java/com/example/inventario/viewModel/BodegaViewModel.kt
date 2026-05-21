@@ -64,7 +64,39 @@ class BodegaViewModel(
 
     fun eliminarBodega(bodega: Bodega) {
         viewModelScope.launch {
-            dao.eliminar(bodega)
+            val bodegaEliminada = bodega.copy(
+                isDeleted = true,
+                deletionDate = System.currentTimeMillis()
+            )
+            dao.actualizar(bodegaEliminada)
+            firebaseRepo.guardarBodega(bodegaEliminada)
+        }
+    }
+
+    fun restaurarBodega(bodega: Bodega) {
+        viewModelScope.launch {
+            val bodegaRestaurada = bodega.copy(
+                isDeleted = false,
+                deletionDate = null
+            )
+            dao.actualizar(bodegaRestaurada)
+            firebaseRepo.guardarBodega(bodegaRestaurada)
+        }
+    }
+
+    fun obtenerPapelera(): Flow<List<Bodega>> = dao.obtenerPapelera()
+
+    fun purgarAntiguos() {
+        viewModelScope.launch {
+            val limite = System.currentTimeMillis() - (90L * 24 * 60 * 60 * 1000)
+            dao.purgarAntiguos(limite)
+            // Opcional: purgar en Firebase también si es necesario
+        }
+    }
+
+    fun eliminarPermanente(bodega: Bodega) {
+        viewModelScope.launch {
+            dao.eliminarPermanente(bodega.id)
             firebaseRepo.eliminarBodega(bodega.id)
         }
     }

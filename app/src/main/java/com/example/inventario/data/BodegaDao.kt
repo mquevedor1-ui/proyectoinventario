@@ -33,11 +33,17 @@ interface BodegaDao {
     // OBTENER TODAS
     // =========================
 
-    @Query(
-        "SELECT * FROM bodegas"
-    )
-    fun obtenerTodas():
-            Flow<List<Bodega>>
+    @Query("SELECT * FROM bodegas WHERE isDeleted = 0")
+    fun obtenerTodas(): Flow<List<Bodega>>
+
+    @Query("SELECT * FROM bodegas WHERE isDeleted = 1")
+    fun obtenerPapelera(): Flow<List<Bodega>>
+
+    @Query("DELETE FROM bodegas WHERE isDeleted = 1 AND deletionDate < :timestamp")
+    suspend fun purgarAntiguos(timestamp: Long)
+
+    @Query("DELETE FROM bodegas WHERE id = :id")
+    suspend fun eliminarPermanente(id: String)
 
     // =========================
     // OBTENER POR ID

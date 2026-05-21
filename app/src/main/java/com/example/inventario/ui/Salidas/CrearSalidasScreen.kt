@@ -1,6 +1,5 @@
 package com.example.inventario.ui.Salidas
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,24 +8,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TextButton
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,8 +33,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 
+import androidx.compose.runtime.rememberCoroutineScope
+
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 import androidx.lifecycle.viewmodel.compose.viewModel
 
@@ -44,12 +46,15 @@ import androidx.navigation.NavController
 
 import com.example.inventario.data.Salida
 
+import com.example.inventario.ui.AppTopBar
+import com.example.inventario.ui.FechaIngresar
+
 import com.example.inventario.viewModel.ProductoViewModel
 import com.example.inventario.viewModel.SalidaViewModel
 
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.Calendar
+
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -62,26 +67,14 @@ fun CrearSalidasScreen(
 
 ) {
 
-    // viewmodel
-
     val salidaViewModel:
             SalidaViewModel = viewModel()
 
     val productoViewModel:
             ProductoViewModel = viewModel()
 
-    // fecha automatica
-
-    val fechaActual = remember {
-
-        SimpleDateFormat(
-
-            "dd/MM/yyyy",
-
-            Locale.getDefault()
-
-        ).format(Date())
-    }
+    val scope =
+        rememberCoroutineScope()
 
     // estados
 
@@ -107,7 +100,14 @@ fun CrearSalidasScreen(
 
     var fecha by remember {
 
-        mutableStateOf(fechaActual)
+        val c = Calendar.getInstance()
+
+        mutableStateOf(
+
+            "${c.get(Calendar.DAY_OF_MONTH)}/" +
+                    "${c.get(Calendar.MONTH) + 1}/" +
+                    "${c.get(Calendar.YEAR)}"
+        )
     }
 
     var responsable by remember {
@@ -162,48 +162,20 @@ fun CrearSalidasScreen(
 
         topBar = {
 
-            CenterAlignedTopAppBar(
+            AppTopBar(
 
-                title = {
+                titulo =
+                    "Registrar Salida",
 
-                    Text(
-                        text = "Registrar Salida"
-                    )
-                },
-
-                navigationIcon = {
-
-                    IconButton(
-
-                        onClick = {
-
-                            navController
-                                .popBackStack()
-                        }
-
-                    ) {
-
-                        Icon(
-
-                            imageVector =
-                                Icons.Default.ArrowBack,
-
-                            contentDescription =
-                                "Regresar"
-                        )
-                    }
-                },
-
-                colors = TopAppBarDefaults
-                    .centerAlignedTopAppBarColors(
-
-                        containerColor =
-                            MaterialTheme
-                                .colorScheme
-                                .surface
-                    )
+                navController =
+                    navController
             )
-        }
+        },
+
+        containerColor =
+            MaterialTheme
+                .colorScheme
+                .background
 
     ) { padding ->
 
@@ -211,307 +183,426 @@ fun CrearSalidasScreen(
 
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-
-                    MaterialTheme
-                        .colorScheme
-                        .background
-                )
                 .padding(padding)
-                .padding(16.dp)
+                .padding(20.dp)
                 .verticalScroll(
-
                     rememberScrollState()
-                ),
-
-            verticalArrangement =
-                Arrangement.spacedBy(12.dp)
-
+                )
         ) {
 
-            // codigo
-
-            OutlinedTextField(
-
-                value = codigo,
-
-                onValueChange = {
-
-                    codigo = it
-                },
-
-                label = {
-
-                    Text("Código")
-                },
-
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
-
-            // descripcion
-
-            OutlinedTextField(
-
-                value = descripcion,
-
-                onValueChange = {},
-
-                readOnly = true,
-
-                label = {
-
-                    Text("Descripción")
-                },
-
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
-
-            // categoria
-
-            OutlinedTextField(
-
-                value = categoria,
-
-                onValueChange = {},
-
-                readOnly = true,
-
-                label = {
-
-                    Text("Categoría")
-                },
-
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
-
-            // cantidad
-
-            OutlinedTextField(
-
-                value = cantidad,
-
-                onValueChange = {
-
-                    cantidad = it
-                },
-
-                label = {
-
-                    Text("Cantidad")
-                },
-
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
-
-            // fecha
-
-            OutlinedTextField(
-
-                value = fecha,
-
-                onValueChange = {},
-
-                readOnly = true,
-
-                label = {
-
-                    Text("Fecha")
-                },
-
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
-
-            // responsable
-
-            OutlinedTextField(
-
-                value = responsable,
-
-                onValueChange = {
-
-                    responsable = it
-                },
-
-                label = {
-
-                    Text("Quién lo lleva")
-                },
-
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
-
-            // destino
-
-            OutlinedTextField(
-
-                value = destino,
-
-                onValueChange = {
-
-                    destino = it
-                },
-
-                label = {
-
-                    Text("Para qué / Destino")
-                },
-
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
-
-            // vehiculo
-
-            OutlinedTextField(
-
-                value = vehiculo,
-
-                onValueChange = {
-
-                    vehiculo = it
-                },
-
-                label = {
-
-                    Text("Vehículo / Tractor / Camión")
-                },
-
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
-
-            // notas
-
-            OutlinedTextField(
-
-                value = notas,
-
-                onValueChange = {
-
-                    notas = it
-                },
-
-                label = {
-
-                    Text("Notas")
-                },
-
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp)
-            )
-
-            Spacer(
-
-                modifier =
-                    Modifier.height(12.dp)
-            )
-
-            // botones
-
-            Row(
-
-                modifier = Modifier
-                    .fillMaxWidth(),
-
-                horizontalArrangement =
-                    Arrangement.spacedBy(12.dp)
+            Card(
+
+                shape =
+                    RoundedCornerShape(24.dp),
+
+                colors =
+                    CardDefaults.cardColors(
+
+                        containerColor =
+                            MaterialTheme
+                                .colorScheme
+                                .surface
+                    )
 
             ) {
 
-                Button(
+                Column(
 
-                    onClick = {
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp)
 
-                        if (
+                ) {
 
-                            codigo.isNotEmpty()
-                            &&
-                            cantidad.isNotEmpty()
+                    Text(
+
+                        text =
+                            "Registrar Nueva Salida",
+
+                        fontSize = 28.sp,
+
+                        fontWeight =
+                            FontWeight.Bold
+                    )
+
+                    Spacer(
+                        modifier =
+                            Modifier.height(8.dp)
+                    )
+
+                    Text(
+
+                        text =
+                            "Complete los datos de la salida",
+
+                        color =
+                            MaterialTheme
+                                .colorScheme
+                                .onSurfaceVariant
+                    )
+
+                    Spacer(
+                        modifier =
+                            Modifier.height(24.dp)
+                    )
+
+                    // codigo y fecha
+
+                    Row(
+
+                        horizontalArrangement =
+                            Arrangement.spacedBy(16.dp)
+
+                    ) {
+
+                        OutlinedTextField(
+
+                            value =
+                                codigo,
+
+                            onValueChange = {
+
+                                codigo = it
+                            },
+
+                            label = {
+
+                                Text(
+                                    "Código Producto"
+                                )
+                            },
+
+                            modifier =
+                                Modifier.weight(1f)
+                        )
+
+                        FechaIngresar(
+
+                            fecha = fecha,
+
+                            onFechaChange = {
+
+                                fecha = it
+                            },
+
+                            label = "Fecha",
+
+                            modifier =
+                                Modifier.weight(1f)
+                        )
+                    }
+
+                    Spacer(
+                        modifier =
+                            Modifier.height(16.dp)
+                    )
+
+                    // descripcion
+
+                    OutlinedTextField(
+
+                        value =
+                            descripcion,
+
+                        onValueChange = {},
+
+                        readOnly = true,
+
+                        label = {
+
+                            Text(
+                                "Descripción"
+                            )
+                        },
+
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+
+                    Spacer(
+                        modifier =
+                            Modifier.height(16.dp)
+                    )
+
+                    // cantidad y categoria
+
+                    Row(
+
+                        horizontalArrangement =
+                            Arrangement.spacedBy(16.dp)
+
+                    ) {
+
+                        OutlinedTextField(
+
+                            value =
+                                cantidad,
+
+                            onValueChange = {
+
+                                cantidad = it
+                            },
+
+                            label = {
+
+                                Text(
+                                    "Cantidad"
+                                )
+                            },
+
+                            modifier =
+                                Modifier.weight(1f)
+                        )
+
+                        OutlinedTextField(
+
+                            value =
+                                categoria,
+
+                            onValueChange = {},
+
+                            readOnly = true,
+
+                            label = {
+
+                                Text(
+                                    "Categoría"
+                                )
+                            },
+
+                            modifier =
+                                Modifier.weight(1f)
+                        )
+                    }
+
+                    Spacer(
+                        modifier =
+                            Modifier.height(16.dp)
+                    )
+
+                    // responsable y destino
+
+                    Row(
+
+                        horizontalArrangement =
+                            Arrangement.spacedBy(16.dp)
+
+                    ) {
+
+                        OutlinedTextField(
+
+                            value =
+                                responsable,
+
+                            onValueChange = {
+
+                                responsable = it
+                            },
+
+                            label = {
+
+                                Text(
+                                    "Quién lo lleva"
+                                )
+                            },
+
+                            modifier =
+                                Modifier.weight(1f)
+                        )
+
+                        OutlinedTextField(
+
+                            value =
+                                destino,
+
+                            onValueChange = {
+
+                                destino = it
+                            },
+
+                            label = {
+
+                                Text(
+                                    "Para qué / Destino"
+                                )
+                            },
+
+                            modifier =
+                                Modifier.weight(1f)
+                        )
+                    }
+
+                    Spacer(
+                        modifier =
+                            Modifier.height(16.dp)
+                    )
+
+                    // vehiculo
+
+                    OutlinedTextField(
+
+                        value =
+                            vehiculo,
+
+                        onValueChange = {
+
+                            vehiculo = it
+                        },
+
+                        label = {
+
+                            Text(
+                                "Vehículo / Tractor / Camión"
+                            )
+                        },
+
+                        modifier =
+                            Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(
+                        modifier =
+                            Modifier.height(16.dp)
+                    )
+
+                    // notas
+
+                    OutlinedTextField(
+
+                        value =
+                            notas,
+
+                        onValueChange = {
+
+                            notas = it
+                        },
+
+                        label = {
+
+                            Text(
+                                "Notas"
+                            )
+                        },
+
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp)
+                    )
+
+                    Spacer(
+                        modifier =
+                            Modifier.height(24.dp)
+                    )
+
+                    // botones
+
+                    Row(
+
+                        modifier =
+                            Modifier.fillMaxWidth(),
+
+                        horizontalArrangement =
+                            Arrangement.End
+
+                    ) {
+
+                        TextButton(
+
+                            onClick = {
+
+                                navController
+                                    .popBackStack()
+                            }
 
                         ) {
 
-                            val nuevaSalida =
-
-                                Salida(
-
-                                    codigo =
-                                        codigo,
-
-                                    descripcion =
-                                        descripcion,
-
-                                    categoria =
-                                        categoria,
-
-                                    cantidad =
-                                        cantidad.toInt(),
-
-                                    responsable =
-                                        responsable,
-
-                                    destino =
-                                        destino,
-
-                                    vehiculo =
-                                        vehiculo,
-
-                                    fecha =
-                                        fecha,
-
-                                    notas =
-                                        notas,
-
-                                    bodegaId =
-                                        bodegaId
-                                )
-
-                            // guardar
-
-                            salidaViewModel
-                                .agregarSalida(
-                                    nuevaSalida
-                                )
-
-                            // regresar
-
-                            navController
-                                .popBackStack()
-                        }
-                    },
-
-                    colors =
-                        ButtonDefaults
-                            .buttonColors(
-
-                                containerColor =
-                                    MaterialTheme
-                                        .colorScheme
-                                        .error
+                            Text(
+                                "Cancelar"
                             )
+                        }
 
-                ) {
+                        Spacer(
+                            modifier =
+                                Modifier.width(12.dp)
+                        )
 
-                    Text("Registrar")
-                }
+                        Button(
 
-                Button(
+                            onClick = {
 
-                    onClick = {
+                                scope.launch {
 
-                        navController
-                            .popBackStack()
+                                    if (
+
+                                        codigo.isNotEmpty() &&
+                                        cantidad.isNotEmpty()
+
+                                    ) {
+
+                                        val nuevaSalida =
+
+                                            Salida(
+
+                                                codigo =
+                                                    codigo,
+
+                                                descripcion =
+                                                    descripcion,
+
+                                                categoria =
+                                                    categoria,
+
+                                                cantidad =
+                                                    cantidad.toIntOrNull()
+                                                        ?: 0,
+
+                                                responsable =
+                                                    responsable,
+
+                                                destino =
+                                                    destino,
+
+                                                vehiculo =
+                                                    vehiculo,
+
+                                                fecha =
+                                                    fecha,
+
+                                                notas =
+                                                    notas,
+
+                                                bodegaId =
+                                                    bodegaId
+                                            )
+
+                                        // guardar salida y actualizar stock (vía ViewModel)
+                                        salidaViewModel
+                                            .agregarSalida(
+                                                nuevaSalida
+                                            )
+
+                                        navController
+                                            .popBackStack()
+                                    }
+                                }
+                            },
+
+                            colors =
+                                ButtonDefaults
+                                    .buttonColors(
+
+                                        containerColor =
+                                            MaterialTheme
+                                                .colorScheme
+                                                .primary
+                                    )
+                        ) {
+
+                            Text(
+                                "Registrar"
+                            )
+                        }
                     }
-
-                ) {
-
-                    Text("Cancelar")
                 }
             }
         }

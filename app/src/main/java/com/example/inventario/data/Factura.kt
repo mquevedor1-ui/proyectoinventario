@@ -51,5 +51,9 @@ data class Factura(
 
     // usuario
 
-    val usuario: String = ""
+    val usuario: String = "",
+
+    // Papelera
+    val isDeleted: Boolean = false,
+    val deletionDate: Long? = null
 )

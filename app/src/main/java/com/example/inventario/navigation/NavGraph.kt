@@ -30,9 +30,15 @@ import com.example.inventario.ui.Facturas.CrearFacturasScreen
 import com.example.inventario.ui.config.ConfigScreen
 import com.example.inventario.ui.config.UsuariosScreen
 import com.example.inventario.ui.config.TemasScreen
+import com.example.inventario.ui.config.notifications.NotificacionesScreen
 
 import com.example.inventario.ui.CrearUsuarioScreen
 import com.example.inventario.ui.inventario.InventarioScreen
+
+import com.example.inventario.ui.entradas.EditarEntradaScreen
+import com.example.inventario.ui.Salidas.EditarSalidaScreen
+import com.example.inventario.ui.Facturas.EditarFacturaScreen
+import com.example.inventario.ui.papelera.PapeleraScreen
 
 @Composable
 fun NavGraph() {
@@ -435,6 +441,11 @@ fun NavGraph() {
             )
         }
 
+        // notificaciones
+        composable("notificaciones") {
+            NotificacionesScreen(navController = navController)
+        }
+
         // crear usuario
 
         composable("crearUsuario") {
@@ -444,6 +455,47 @@ fun NavGraph() {
                 navController = navController,
 
                 viewModel = viewModel()
+            )
+        }
+
+        // editar entrada
+        composable(
+            route = "editarEntrada/{entradaId}",
+            arguments = listOf(navArgument("entradaId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getInt("entradaId") ?: 0
+            EditarEntradaScreen(navController, id)
+        }
+
+        // editar salida
+        composable(
+            route = "editarSalida/{salidaId}",
+            arguments = listOf(navArgument("salidaId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getInt("salidaId") ?: 0
+            EditarSalidaScreen(navController, id)
+        }
+
+        // editar factura
+        composable(
+            route = "editarFactura/{facturaId}",
+            arguments = listOf(navArgument("facturaId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getInt("facturaId") ?: 0
+            EditarFacturaScreen(navController, id)
+        }
+
+        // papelera
+        composable("papelera") {
+            PapeleraScreen(
+                navController = navController,
+                productoViewModel = viewModel(),
+                entradaViewModel = viewModel(),
+                salidaViewModel = viewModel(),
+                facturaViewModel = viewModel(),
+                bodegaViewModel = viewModel(),
+                usuarioViewModel = viewModel(),
+                categoriaViewModel = viewModel()
             )
         }
     }

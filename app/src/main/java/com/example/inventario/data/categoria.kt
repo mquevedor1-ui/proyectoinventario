@@ -11,5 +11,9 @@ data class categoria(
 
     val nombre: String,
 
-    val prefijo: String
+    val prefijo: String,
+
+    val isDeleted: Boolean = false,
+
+    val deletionDate: Long? = null
 )

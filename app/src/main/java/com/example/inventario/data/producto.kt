@@ -49,5 +49,9 @@ data class producto(
     val fechaIngreso: String = "",
 
     // notas
-    val notas: String = ""
+    val notas: String = "",
+
+    // Papelera
+    val isDeleted: Boolean = false,
+    val deletionDate: Long? = null
 )

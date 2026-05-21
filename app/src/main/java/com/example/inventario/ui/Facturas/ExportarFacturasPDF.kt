@@ -2,77 +2,87 @@ package com.example.inventario.ui.Facturas
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
+import android.net.Uri
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.example.inventario.data.Factura
 import java.io.File
 import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-fun exportarFacturasPDF(
-    context: Context,
-    facturas: List<Factura>
-) {
+fun exportarFacturasPDF(context: Context, facturas: List<Factura>, periodo: String) {
     val file = File(context.cacheDir, "facturas_${System.currentTimeMillis()}.pdf")
     val pdfDocument = PdfDocument()
-    val paint = Paint()
-    val titlePaint = Paint()
-
-    val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
+    
+    // Ancho ampliado para reporte completo
+    val pageInfo = PdfDocument.PageInfo.Builder(1400, 2000, 1).create()
     val page = pdfDocument.startPage(pageInfo)
-    val canvas: Canvas = page.canvas
+    val canvas = page.canvas
 
-    titlePaint.textSize = 18f
-    titlePaint.isFakeBoldText = true
-    canvas.drawText("Reporte de Facturas", 40f, 50f, titlePaint)
+    val tituloPaint = Paint().apply { textSize = 30f; isFakeBoldText = true }
+    val subtituloPaint = Paint().apply { textSize = 20f; isFakeBoldText = false }
+    val textoPaint = Paint().apply { textSize = 14f }
+    val encabezadoPaint = Paint().apply { textSize = 14f; isFakeBoldText = true }
+    val lineaPaint = Paint().apply { strokeWidth = 1f }
 
-    paint.textSize = 12f
-    var yPosition = 100f
+    canvas.drawText("Reporte General de Facturas", 50f, 60f, tituloPaint)
+    canvas.drawText("Periodo: $periodo", 50f, 95f, subtituloPaint)
 
+    val fechaActual = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
+    canvas.drawText("Generado el: $fechaActual", 50f, 130f, textoPaint)
+
+    var y = 180f
     // Encabezados
-    paint.isFakeBoldText = true
-    canvas.drawText("N° Factura", 40f, yPosition, paint)
-    canvas.drawText("Fecha", 140f, yPosition, paint)
-    canvas.drawText("Proveedor", 240f, yPosition, paint)
-    canvas.drawText("Total", 480f, yPosition, paint)
+    canvas.drawText("N° Factura", 40f, y, encabezadoPaint)
+    canvas.drawText("Fecha", 180f, y, encabezadoPaint)
+    canvas.drawText("Proveedor", 320f, y, encabezadoPaint)
+    canvas.drawText("Código/Prod.", 550f, y, encabezadoPaint)
+    canvas.drawText("Categoría", 800f, y, encabezadoPaint)
+    canvas.drawText("Notas", 1000f, y, encabezadoPaint)
+    canvas.drawText("Total", 1250f, y, encabezadoPaint)
 
-    yPosition += 20f
-    paint.isFakeBoldText = false
-    canvas.drawLine(40f, yPosition - 10f, 550f, yPosition - 10f, paint)
+    y += 10f
+    canvas.drawLine(40f, y, 1360f, y, lineaPaint)
+    y += 35f
 
-    facturas.forEach { factura ->
-        if (yPosition > 800) {
-            pdfDocument.finishPage(page)
-            return@forEach
-        }
-        canvas.drawText(factura.numeroFactura, 40f, yPosition, paint)
-        canvas.drawText(factura.fecha, 140f, yPosition, paint)
-        canvas.drawText(factura.proveedor.take(25), 240f, yPosition, paint)
-        canvas.drawText("$ ${factura.total}", 480f, yPosition, paint)
-        yPosition += 20f
+    var granTotal = 0.0
+    facturas.forEach { f ->
+        if (y > 1900) return@forEach
+        granTotal += f.total
+
+        canvas.drawText(f.numeroFactura, 40f, y, textoPaint)
+        canvas.drawText(f.fecha, 180f, y, textoPaint)
+        canvas.drawText(f.proveedor.take(20), 320f, y, textoPaint)
+        canvas.drawText("${f.codigo} - ${f.productos.take(15)}", 550f, y, textoPaint)
+        canvas.drawText(f.categoria, 800f, y, textoPaint)
+        canvas.drawText(f.notas.take(25), 1000f, y, textoPaint)
+        canvas.drawText("Q${String.format(Locale.US, "%.2f", f.total)}", 1250f, y, textoPaint)
+        y += 30f
     }
+
+    y += 20f
+    canvas.drawLine(40f, y, 1360f, y, lineaPaint)
+    y += 40f
+    canvas.drawText("SUMA TOTAL DE FACTURAS: Q ${String.format(Locale.US, "%.2f", granTotal)}", 950f, y, tituloPaint.apply { textSize = 22f })
 
     pdfDocument.finishPage(page)
 
     try {
         val fos = FileOutputStream(file)
         pdfDocument.writeTo(fos)
-        fos.flush()
         fos.close()
         pdfDocument.close()
 
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-        val intent = Intent(Intent.ACTION_VIEW).apply {
+        context.startActivity(Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uri, "application/pdf")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        context.startActivity(Intent.createChooser(intent, "Abrir Reporte de Facturas"))
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+        })
     } catch (e: Exception) {
-        e.printStackTrace()
-        Toast.makeText(context, "Error al generar PDF: ${e.message}", Toast.LENGTH_LONG).show()
+        Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
     }
 }

@@ -1,5 +1,7 @@
 package com.example.inventario.ui.inventario
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,6 +21,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.PictureAsPdf
 
 import androidx.compose.material3.Button
@@ -29,11 +33,13 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -43,6 +49,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -73,6 +80,18 @@ fun InventarioScreen(
 
     val productoViewModel:
             ProductoViewModel = viewModel()
+
+    // Launcher para importar Excel
+    val launcherImportar = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            val productosImportados = importarExcel(context, it, bodegaId)
+            productosImportados.forEach { p ->
+                productoViewModel.agregarProducto(p)
+            }
+        }
+    }
 
     LaunchedEffect(bodegaId) {
 
@@ -117,7 +136,10 @@ fun InventarioScreen(
             }
         }
 
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
 
         containerColor =
             MaterialTheme.colorScheme.background,
@@ -133,7 +155,9 @@ fun InventarioScreen(
                     "Bodega: $bodegaId",
 
                 navController =
-                    navController
+                    navController,
+
+                scrollBehavior = scrollBehavior
             )
         },
 
@@ -323,6 +347,21 @@ fun InventarioScreen(
                 }
             }
 
+            // Botón Importar Excel (Solo Admin)
+            if (SessionManager.esAdmin()) {
+                OutlinedButton(
+                    onClick = {
+                        launcherImportar.launch("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Default.FileUpload, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Importar Inventario desde Excel")
+                }
+            }
+
             // titulo
 
             Text(
@@ -354,8 +393,7 @@ fun InventarioScreen(
                         productosFiltrados,
 
                     key = {
-
-                        it.codigo
+                        it.id
                     }
 
                 ) { producto ->
@@ -365,19 +403,15 @@ fun InventarioScreen(
                         producto = producto,
 
                         onEditar = {
-
-                            navController.navigate(
-
-                                "editarProducto/${producto.id}"
-                            )
+                            if (SessionManager.esAdmin()) {
+                                navController.navigate("editarProducto/${producto.id}")
+                            }
                         },
 
                         onEliminar = {
-
-                            productoViewModel
-                                .eliminarProducto(
-                                    producto
-                                )
+                            if (SessionManager.esAdmin()) {
+                                productoViewModel.eliminarProducto(producto)
+                            }
                         }
                     )
                 }

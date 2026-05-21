@@ -50,9 +50,6 @@ fun CardBodega(
         "facturas" ->
             Icons.Default.Description
 
-        "existencias" ->
-            Icons.Default.Warning
-
         "presupuesto" ->
             Icons.Default.AttachMoney
 

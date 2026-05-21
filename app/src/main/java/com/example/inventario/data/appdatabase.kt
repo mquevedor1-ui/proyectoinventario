@@ -24,7 +24,7 @@ import androidx.room.RoomDatabase
         Factura::class
     ],
 
-    version = 10,
+    version = 15,
 
     exportSchema = false
 )

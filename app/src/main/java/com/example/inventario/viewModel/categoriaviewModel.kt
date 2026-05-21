@@ -70,16 +70,44 @@ class CategoriaViewModel(
         }
     }
 
-    // Eliminar -> Local + Firebase
+    // Eliminar (Soft Delete)
     fun eliminarCategoria(categoria: categoria) {
         viewModelScope.launch {
-            dao.eliminar(categoria)
+            val now = System.currentTimeMillis()
+            dao.softDelete(categoria.id, now)
+            firebaseRepo.guardarCategoria(categoria.copy(isDeleted = true, deletionDate = now))
+        }
+    }
+
+    fun restaurarCategoria(categoria: categoria) {
+        viewModelScope.launch {
+            dao.restore(categoria.id)
+            firebaseRepo.guardarCategoria(categoria.copy(isDeleted = false, deletionDate = null))
+        }
+    }
+
+    fun obtenerPapelera() = dao.getDeletedCategorias()
+
+    fun purgarAntiguos() {
+        viewModelScope.launch {
+            val threshold = System.currentTimeMillis() - (90L * 24 * 60 * 60 * 1000)
+            dao.permanentPurge(threshold)
+        }
+    }
+
+    fun eliminarPermanente(categoria: categoria) {
+        viewModelScope.launch {
+            dao.deletePermanently(categoria.id)
             firebaseRepo.eliminarCategoria(categoria.id)
         }
     }
 
     suspend fun buscarCategoria(nombre: String): categoria? {
         return dao.buscarCategoria(nombre)
+    }
+
+    suspend fun buscarPorPrefijo(prefijo: String): categoria? {
+        return dao.buscarPorPrefijo(prefijo)
     }
 
     suspend fun obtenerCategoriaPorId(id: Int): categoria? {

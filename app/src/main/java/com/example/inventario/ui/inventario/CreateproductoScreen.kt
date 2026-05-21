@@ -328,44 +328,38 @@ fun CrearProductoScreen(
 
                             onClick = {
 
-                                if (
+                                    val nombre = nuevaCategoria.trim()
+                                    if (nombre.isNotEmpty()) {
+                                        coroutineScope.launch {
+                                            var pfx = nombre.take(1).uppercase()
+                                            var i = 1
+                                            while (i < nombre.length && categoriaViewModel.buscarPorPrefijo(pfx) != null) {
+                                                i++
+                                                pfx = nombre.take(i).uppercase()
+                                            }
+                                            
+                                            // Si llegamos al final y sigue existiendo, agregamos un número
+                                            if (categoriaViewModel.buscarPorPrefijo(pfx) != null) {
+                                                var count = 1
+                                                while (categoriaViewModel.buscarPorPrefijo(pfx + count) != null) {
+                                                    count++
+                                                }
+                                                pfx += count
+                                            }
 
-                                    nuevaCategoria
-                                        .isNotEmpty()
-
-                                ) {
-
-                                    val pfx =
-
-                                        nuevaCategoria
-                                            .take(1)
-                                            .uppercase()
-
-                                    categoriaViewModel
-                                        .insertarCategoria(
-
-                                            categoria(
-
-                                                nombre =
-                                                    nuevaCategoria,
-
-                                                prefijo =
-                                                    pfx
+                                            categoriaViewModel.insertarCategoria(
+                                                categoria(
+                                                    nombre = nombre,
+                                                    prefijo = pfx
+                                                )
                                             )
-                                        )
 
-                                    categoriaSeleccionada =
-                                        nuevaCategoria
-
-                                    prefijoSeleccionado =
-                                        pfx
-
-                                    actualizarCodigo(
-                                        pfx
-                                    )
-
-                                    nuevaCategoria = ""
-                                }
+                                            categoriaSeleccionada = nombre
+                                            prefijoSeleccionado = pfx
+                                            actualizarCodigo(pfx)
+                                            nuevaCategoria = ""
+                                        }
+                                    }
                             }
 
                         ) {

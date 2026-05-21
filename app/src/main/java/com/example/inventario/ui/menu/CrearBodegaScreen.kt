@@ -27,37 +27,57 @@ fun CrearBodegaScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(20.dp)
         ) {
-            Text(
-                text = "Ingrese los detalles de la nueva bodega",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            OutlinedTextField(
-                value = nombre,
-                onValueChange = { nombre = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Nombre de la Bodega") },
-                placeholder = { Text("Ej: Bodega Central") },
-                singleLine = true,
-                shape = MaterialTheme.shapes.medium
-            )
-
-            Button(
-                onClick = {
-                    if (nombre.isNotBlank()) {
-                        viewModel.crearBodega(nombre)
-                        navController.popBackStack()
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium,
-                enabled = nombre.isNotBlank()
+            Card(
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Crear Bodega")
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "Registrar Nueva Bodega",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                    )
+
+                    Text(
+                        text = "Ingrese los detalles de la nueva bodega",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    OutlinedTextField(
+                        value = nombre,
+                        onValueChange = { nombre = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Nombre de la Bodega") },
+                        placeholder = { Text("Ej: Bodega Central") },
+                        singleLine = true,
+                        shape = MaterialTheme.shapes.medium
+                    )
+
+                    Button(
+                        onClick = {
+                            if (nombre.isNotBlank()) {
+                                viewModel.crearBodega(nombre)
+                                navController.popBackStack()
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().height(50.dp),
+                        shape = MaterialTheme.shapes.medium,
+                        enabled = nombre.isNotBlank()
+                    ) {
+                        Text("Crear Bodega")
+                    }
+                }
             }
         }
     }

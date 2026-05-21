@@ -46,7 +46,7 @@ interface productoDao {
 
  @Query(
 
-  "SELECT * FROM productos WHERE bodegaId = :bodegaId ORDER BY descripcion ASC"
+  "SELECT * FROM productos WHERE bodegaId = :bodegaId AND isDeleted = 0 ORDER BY descripcion ASC"
  )
  fun obtenerProductos(
 
@@ -58,7 +58,7 @@ interface productoDao {
 
  @Query(
 
-  "SELECT * FROM productos WHERE codigo = :codigo LIMIT 1"
+  "SELECT * FROM productos WHERE codigo = :codigo AND isDeleted = 0 LIMIT 1"
  )
  suspend fun obtenerProductoPorCodigo(
 
@@ -77,6 +77,9 @@ interface productoDao {
   id: Int
 
  ): producto?
+
+ @Query("SELECT * FROM productos WHERE cantidad <= stockMinimo AND stockMinimo > 0 AND isDeleted = 0")
+ fun obtenerProductosBajoStock(): Flow<List<producto>>
 
  // obtener ultimo codigo
 
@@ -97,4 +100,21 @@ interface productoDao {
   "DELETE FROM productos"
  )
  suspend fun eliminarTodo()
+
+ // --- PAPELERA ---
+
+ @Query("UPDATE productos SET isDeleted = 1, deletionDate = :date WHERE id = :id")
+ suspend fun softDelete(id: Int, date: Long)
+
+ @Query("UPDATE productos SET isDeleted = 0, deletionDate = NULL WHERE id = :id")
+ suspend fun restore(id: Int)
+
+ @Query("SELECT * FROM productos WHERE isDeleted = 1 ORDER BY deletionDate DESC")
+ fun getDeletedProductos(): Flow<List<producto>>
+
+ @Query("DELETE FROM productos WHERE isDeleted = 1 AND deletionDate <= :threshold")
+ suspend fun permanentPurge(threshold: Long)
+
+ @Query("DELETE FROM productos WHERE id = :id")
+ suspend fun deletePermanently(id: Int)
 }

@@ -65,6 +65,7 @@ import androidx.navigation.NavController
 
 import com.example.inventario.data.Bodega
 import com.example.inventario.viewModel.BodegaViewModel
+import com.example.inventario.viewModel.SessionManager
 
 @Composable
 fun MenuPScreen(
@@ -115,14 +116,12 @@ fun MenuPScreen(
         topBar = {
 
             Row(
-
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
-
                         start = 16.dp,
                         end = 16.dp,
-                        top = 48.dp,
+                        top = 48.dp, // Bajamos el encabezado
                         bottom = 16.dp
                     ),
 
@@ -146,7 +145,7 @@ fun MenuPScreen(
                         text =
                             "SISTEMA INVENTARIO",
 
-                        fontSize = 18.sp,
+                        fontSize = 24.sp, // Más grande
 
                         fontWeight =
                             FontWeight.Bold
@@ -157,7 +156,7 @@ fun MenuPScreen(
                         text =
                             "Seleccione bodega",
 
-                        fontSize = 14.sp,
+                        fontSize = 16.sp, // Más grande
 
                         color =
                             MaterialTheme
@@ -173,9 +172,7 @@ fun MenuPScreen(
                     IconButton(
 
                         onClick = {
-
-                            bodegaViewModel
-                                .actualizarTodoDesdeNube()
+                            bodegaViewModel.actualizarTodoDesdeNube()
                         }
 
                     ) {
@@ -187,6 +184,8 @@ fun MenuPScreen(
 
                             contentDescription =
                                 "Sincronizar",
+
+                            modifier = Modifier.size(28.dp), // Un poquito más grande
 
                             tint =
                                 MaterialTheme
@@ -200,10 +199,7 @@ fun MenuPScreen(
                     IconButton(
 
                         onClick = {
-
-                            navController.navigate(
-                                "configuracion"
-                            )
+                            navController.navigate("configuracion")
                         }
 
                     ) {
@@ -215,6 +211,8 @@ fun MenuPScreen(
 
                             contentDescription =
                                 "Configuracion",
+
+                            modifier = Modifier.size(28.dp), // Un poquito más grande
 
                             tint =
                                 MaterialTheme
@@ -228,11 +226,7 @@ fun MenuPScreen(
                     IconButton(
 
                         onClick = {
-
-                            navController.navigate(
-                                "login"
-                            ) {
-
+                            navController.navigate("login") {
                                 popUpTo(0)
                             }
                         }
@@ -246,6 +240,8 @@ fun MenuPScreen(
 
                             contentDescription =
                                 "Cerrar Sesion",
+
+                            modifier = Modifier.size(28.dp), // Un poquito más grande
 
                             tint =
                                 MaterialTheme
@@ -296,14 +292,9 @@ fun MenuPScreen(
                             )
                         },
 
-                    colors =
-                        CardDefaults.cardColors(
-
-                            containerColor =
-                                MaterialTheme
-                                    .colorScheme
-                                    .surface
-                        ),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
 
                     elevation =
                         CardDefaults.cardElevation(
@@ -320,68 +311,70 @@ fun MenuPScreen(
 
                     ) {
 
-                        // editar
+                        if (SessionManager.esAdmin()) {
+                            // editar
 
-                        IconButton(
+                            IconButton(
 
-                            onClick = {
+                                onClick = {
 
-                                bodegaParaEditar =
-                                    bodega
-                            },
+                                    bodegaParaEditar =
+                                        bodega
+                                },
 
-                            modifier =
-                                Modifier.align(
-                                    Alignment.TopStart
+                                modifier =
+                                    Modifier.align(
+                                        Alignment.TopStart
+                                    )
+
+                            ) {
+
+                                Icon(
+
+                                    imageVector =
+                                        Icons.Default.Edit,
+
+                                    contentDescription =
+                                        "Editar",
+
+                                    tint =
+                                        MaterialTheme
+                                            .colorScheme
+                                            .primary
                                 )
+                            }
 
-                        ) {
+                            // eliminar
 
-                            Icon(
+                            IconButton(
 
-                                imageVector =
-                                    Icons.Default.Edit,
+                                onClick = {
 
-                                contentDescription =
-                                    "Editar",
+                                    bodegaParaEliminar =
+                                        bodega
+                                },
 
-                                tint =
-                                    MaterialTheme
-                                        .colorScheme
-                                        .primary
-                            )
-                        }
+                                modifier =
+                                    Modifier.align(
+                                        Alignment.TopEnd
+                                    )
 
-                        // eliminar
+                            ) {
 
-                        IconButton(
+                                Icon(
 
-                            onClick = {
+                                    imageVector =
+                                        Icons.Default.Delete,
 
-                                bodegaParaEliminar =
-                                    bodega
-                            },
+                                    contentDescription =
+                                        "Eliminar",
 
-                            modifier =
-                                Modifier.align(
-                                    Alignment.TopEnd
+                                    tint =
+                                        MaterialTheme
+                                            .colorScheme
+                                            .error
                                 )
-
-                        ) {
-
-                            Icon(
-
-                                imageVector =
-                                    Icons.Default.Delete,
-
-                                contentDescription =
-                                    "Eliminar",
-
-                                tint =
-                                    MaterialTheme
-                                        .colorScheme
-                                        .error
-                            )
+                            }
                         }
 
                         Column(
@@ -400,41 +393,21 @@ fun MenuPScreen(
 
                             // icono
 
+                            // icono
                             Box(
-
                                 modifier = Modifier
                                     .size(80.dp)
                                     .background(
-
-                                        MaterialTheme
-                                            .colorScheme
-                                            .primary,
-
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                                         CircleShape
                                     ),
-
-                                contentAlignment =
-                                    Alignment.Center
-
+                                contentAlignment = Alignment.Center
                             ) {
-
                                 Icon(
-
-                                    imageVector =
-                                        Icons.Default.Home,
-
-                                    contentDescription =
-                                        null,
-
-                                    tint =
-                                        MaterialTheme
-                                            .colorScheme
-                                            .onPrimary,
-
-                                    modifier =
-                                        Modifier.size(
-                                            40.dp
-                                        )
+                                    imageVector = Icons.Default.Home,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(45.dp)
                                 )
                             }
 
@@ -465,20 +438,12 @@ fun MenuPScreen(
 
                             // descripcion
 
+                            // descripcion
                             Text(
-
-                                text =
-                                    "Abrir bodega",
-
+                                text = "Abrir bodega",
                                 fontSize = 13.sp,
-
-                                color =
-                                    MaterialTheme
-                                        .colorScheme
-                                        .onSurfaceVariant,
-
-                                textAlign =
-                                    TextAlign.Center
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
                             )
                         }
                     }
@@ -487,17 +452,19 @@ fun MenuPScreen(
 
             // crear bodega
 
-            item {
+            if (SessionManager.esAdmin()) {
+                item {
 
-                CardCrearBodega(
+                    CardCrearBodega(
 
-                    onClick = {
+                        onClick = {
 
-                        navController.navigate(
-                            "crearBodega"
-                        )
-                    }
-                )
+                            navController.navigate(
+                                "crearBodega"
+                            )
+                        }
+                    )
+                }
             }
         }
 

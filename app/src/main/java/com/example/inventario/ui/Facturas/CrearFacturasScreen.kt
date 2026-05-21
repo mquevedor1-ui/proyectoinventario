@@ -173,12 +173,8 @@ fun CrearFacturasScreen(
 
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(24.dp),
+                        .padding(24.dp)
 
-                    verticalArrangement =
-                        Arrangement.spacedBy(
-                            16.dp
-                        )
                 ) {
 
                     Text(
@@ -189,20 +185,37 @@ fun CrearFacturasScreen(
                         fontSize = 28.sp,
 
                         fontWeight =
-                            FontWeight.Bold,
+                            FontWeight.Bold
+                    )
+
+                    Spacer(
+                        modifier =
+                            Modifier.height(8.dp)
+                    )
+
+                    Text(
+
+                        text =
+                            "Complete los datos de la factura",
 
                         color =
                             MaterialTheme
                                 .colorScheme
-                                .primary
+                                .onSurfaceVariant
                     )
+
+                    Spacer(
+                        modifier =
+                            Modifier.height(24.dp)
+                    )
+
+                    // codigo y fecha
 
                     Row(
 
                         horizontalArrangement =
-                            Arrangement.spacedBy(
-                                16.dp
-                            )
+                            Arrangement.spacedBy(16.dp)
+
                     ) {
 
                         OutlinedTextField(
@@ -242,6 +255,13 @@ fun CrearFacturasScreen(
                         )
                     }
 
+                    Spacer(
+                        modifier =
+                            Modifier.height(16.dp)
+                    )
+
+                    // descripcion
+
                     OutlinedTextField(
 
                         value =
@@ -259,18 +279,24 @@ fun CrearFacturasScreen(
                             )
                         },
 
-                        modifier =
-                            Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth(),
 
                         readOnly = true
                     )
 
+                    Spacer(
+                        modifier =
+                            Modifier.height(16.dp)
+                    )
+
+                    // numero factura y cantidad
+
                     Row(
 
                         horizontalArrangement =
-                            Arrangement.spacedBy(
-                                16.dp
-                            )
+                            Arrangement.spacedBy(16.dp)
+
                     ) {
 
                         OutlinedTextField(
@@ -316,12 +342,18 @@ fun CrearFacturasScreen(
                         )
                     }
 
+                    Spacer(
+                        modifier =
+                            Modifier.height(16.dp)
+                    )
+
+                    // proveedor y total
+
                     Row(
 
                         horizontalArrangement =
-                            Arrangement.spacedBy(
-                                16.dp
-                            )
+                            Arrangement.spacedBy(16.dp)
+
                     ) {
 
                         OutlinedTextField(
@@ -367,6 +399,13 @@ fun CrearFacturasScreen(
                         )
                     }
 
+                    Spacer(
+                        modifier =
+                            Modifier.height(16.dp)
+                    )
+
+                    // notas
+
                     OutlinedTextField(
 
                         value =
@@ -389,6 +428,13 @@ fun CrearFacturasScreen(
                             .height(100.dp)
                     )
 
+                    Spacer(
+                        modifier =
+                            Modifier.height(24.dp)
+                    )
+
+                    // botones
+
                     Row(
 
                         modifier =
@@ -396,6 +442,7 @@ fun CrearFacturasScreen(
 
                         horizontalArrangement =
                             Arrangement.End
+
                     ) {
 
                         TextButton(
@@ -405,6 +452,7 @@ fun CrearFacturasScreen(
                                 navController
                                     .popBackStack()
                             }
+
                         ) {
 
                             Text(
@@ -470,7 +518,7 @@ fun CrearFacturasScreen(
                         ) {
 
                             Text(
-                                "Guardar Factura"
+                                "Registrar"
                             )
                         }
                     }

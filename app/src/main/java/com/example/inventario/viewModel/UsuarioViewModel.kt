@@ -8,6 +8,7 @@ import com.example.inventario.data.FirebaseRepository
 import com.example.inventario.data.appdatabase
 import com.example.inventario.data.usuario
 
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -15,15 +16,24 @@ import kotlinx.coroutines.launch
 class UsuarioViewModel(application: Application) : AndroidViewModel(application) {
 
     private val dao = appdatabase.getDatabase(application).usuarioDao()
-
     private val firebaseRepo = FirebaseRepository()
-
     private val _usuarios = MutableStateFlow<List<usuario>>(emptyList())
-
     val usuarios: StateFlow<List<usuario>> = _usuarios
 
     init {
         actualizarListaCompleta()
+    }
+
+    fun limpiarTodaLaBaseDeDatos() {
+        viewModelScope.launch {
+            val db = appdatabase.getDatabase(getApplication())
+            db.productoDao().eliminarTodo()
+            db.entradaDao().deleteAll()
+            db.salidaDao().deleteAll()
+            db.facturaDao().deleteAll()
+            // Firebase limpieza (Opcional, pero recomendado si quieres borrar nube también)
+            // Por seguridad, puedes dejarlo solo local si quieres resetear la app sin afectar a otros
+        }
     }
 
     private fun actualizarListaCompleta() {
@@ -63,8 +73,15 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
         user: String,
         pass: String
     ): usuario? {
-
-        return dao.login(user, pass)
+        val result = dao.login(user, pass)
+        if (result != null) {
+            // Sincronizar con Firebase Auth al hacer login local exitoso
+            // Nota: Firebase requiere formato email para signInWithEmailAndPassword. 
+            // Si el nombre de usuario no es email, se recomienda ajustarlo o usar un sufijo.
+            val email = if (user.contains("@")) user else "$user@app.com"
+            firebaseRepo.login(email, pass)
+        }
+        return result
     }
 
     // REGISTRO NORMAL
@@ -72,27 +89,26 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
         user: String,
         pass: String
     ): Boolean {
-
         val existe = dao.existe(user)
-
         if (existe != null) {
-
             return false
         }
 
+        // Firebase Auth requiere formato email
+        val email = if (user.contains("@")) user else "$user@app.com"
+        firebaseRepo.registrar(email, pass)
+        
+        // Si falló el registro en Firebase (ej. pass corta o usuario ya en Auth),
+        // podrías decidir si continuar o no. Por ahora seguimos para mantener consistencia local.
+        
         val nuevoUser = usuario(
-
             user = user,
-
             pass = pass,
-
             rol = "usuario"
         )
 
         dao.insertar(nuevoUser)
-
         firebaseRepo.guardarUsuario(nuevoUser)
-
         _usuarios.value = dao.obtenerTodos()
 
         return true
@@ -104,26 +120,16 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
         pass: String,
         rol: String
     ) {
-
         viewModelScope.launch {
-
             val existe = dao.existe(user)
-
             if (existe == null) {
-
                 val nuevoUser = usuario(
-
                     user = user,
-
                     pass = pass,
-
                     rol = rol
                 )
-
                 dao.insertar(nuevoUser)
-
                 firebaseRepo.guardarUsuario(nuevoUser)
-
                 _usuarios.value = dao.obtenerTodos()
             }
         }
@@ -131,14 +137,42 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
 
     // ELIMINAR USUARIO
     fun eliminarUsuario(user: usuario) {
-
         viewModelScope.launch {
-
-            dao.eliminar(user)
-
-            firebaseRepo.eliminarUsuario(user.user)
-
+            val usuarioEliminado = user.copy(
+                isDeleted = true,
+                deletionDate = System.currentTimeMillis()
+            )
+            dao.actualizar(usuarioEliminado)
+            firebaseRepo.guardarUsuario(usuarioEliminado)
             _usuarios.value = dao.obtenerTodos()
+        }
+    }
+
+    fun restaurarUsuario(user: usuario) {
+        viewModelScope.launch {
+            val usuarioRestaurado = user.copy(
+                isDeleted = false,
+                deletionDate = null
+            )
+            dao.actualizar(usuarioRestaurado)
+            firebaseRepo.guardarUsuario(usuarioRestaurado)
+            _usuarios.value = dao.obtenerTodos()
+        }
+    }
+
+    fun obtenerPapelera(): Flow<List<usuario>> = dao.obtenerPapelera()
+
+    fun purgarAntiguos() {
+        viewModelScope.launch {
+            val limite = System.currentTimeMillis() - (90L * 24 * 60 * 60 * 1000)
+            dao.purgarAntiguos(limite)
+        }
+    }
+
+    fun eliminarPermanente(usuario: usuario) {
+        viewModelScope.launch {
+            dao.eliminarPermanente(usuario.user)
+            firebaseRepo.eliminarUsuario(usuario.user)
         }
     }
 

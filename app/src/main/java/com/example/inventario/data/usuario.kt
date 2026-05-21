@@ -13,5 +13,9 @@ data class usuario(
 
     val pass: String = "",
 
-    val rol: String = ""
+    val rol: String = "",
+
+    // Papelera
+    val isDeleted: Boolean = false,
+    val deletionDate: Long? = null
 )

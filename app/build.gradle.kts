@@ -287,6 +287,10 @@ dependencies {
     )
 
     implementation(
+        "com.google.firebase:firebase-messaging"
+    )
+
+    implementation(
         "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0"
     )
 

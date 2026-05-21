@@ -12,5 +12,9 @@ data class Bodega(
     @PrimaryKey
     val id: String = "",
 
-    val nombre: String = ""
+    val nombre: String = "",
+
+    // Papelera
+    val isDeleted: Boolean = false,
+    val deletionDate: Long? = null
 )

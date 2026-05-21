@@ -48,6 +48,19 @@ class FirebaseRepository {
     // LOGIN
     // =========================
 
+    suspend fun registrar(
+        email: String,
+        pass: String
+    ): Boolean {
+        return try {
+            auth.createUserWithEmailAndPassword(email, pass).await()
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
     suspend fun login(
 
         email: String,

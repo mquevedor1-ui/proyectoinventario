@@ -1,49 +1,33 @@
 package com.example.inventario.ui.Facturas
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-
-import androidx.compose.runtime.*
-
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-
-import androidx.navigation.NavController
-
-import com.example.inventario.ui.FechaIngresar
-
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import java.util.Calendar
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.example.inventario.data.Factura
 import com.example.inventario.ui.AppTopBar
+import com.example.inventario.ui.inventario.importarFacturasExcel
 import com.example.inventario.viewModel.FacturaViewModel
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
+import com.example.inventario.viewModel.SessionManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,337 +37,292 @@ fun FacturasScreen(
 ) {
     val context = LocalContext.current
     val viewModel: FacturaViewModel = viewModel()
-    val facturas by viewModel.obtenerFacturasPorBodega(bodegaId).collectAsState(initial = emptyList())
+    
+    // Launcher para importar Facturas desde Excel
+    val launcherImportar = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            val facturasImportadas = importarFacturasExcel(context, it, bodegaId)
+            facturasImportadas.forEach { f ->
+                viewModel.agregarFactura(f)
+            }
+        }
+    }
+    
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val filtroPeriodo by viewModel.filtroPeriodo.collectAsState()
+    val periodoTexto by viewModel.periodoTexto.collectAsState()
+    val fechaReferencia by viewModel.fechaReferencia.collectAsState()
+    val facturas by viewModel.obtenerFacturasFiltradas(bodegaId).collectAsState(initial = emptyList())
+
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = fechaReferencia.timeInMillis
+        )
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        // Ajuste para evitar desfase de zona horaria al convertir millis a Calendar
+                        val cal = Calendar.getInstance().apply { timeInMillis = millis + (1000 * 60 * 60 * 24) }
+                        viewModel.setFechaReferencia(cal)
+                    }
+                    showDatePicker = false
+                }) { Text("Aceptar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) { Text("Cancelar") }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.sincronizarDesdeFirebase()
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             AppTopBar(
-                titulo = "Reporte de Facturas",
+                titulo = "Historial de Facturas",
+                subtitulo = "Bodega: $bodegaId",
                 navController = navController
             )
         },
-        containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
-            Button(
-                onClick = {
-                    navController.navigate("crearFactura/$bodegaId")
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
-            ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = null
-                )
-                Text(" Registrar Factura")
+            if (SessionManager.esAdmin() || SessionManager.rolUsuario() == "encargado") {
+                FloatingActionButton(
+                    onClick = { navController.navigate("crearFactura/$bodegaId") },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Registrar")
+                }
             }
         }
     ) { padding ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp)
         ) {
-
-            Row(
+            // Buscador
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { viewModel.setSearchQuery(it) },
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "Facturas de la bodega: $bodegaId",
-                    color = MaterialTheme.colorScheme.onBackground
-                )
+                placeholder = { Text("Buscar por N° Factura o Proveedor...") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true
+            )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Selector de Periodo
+            PeriodoTabsFactura(filtroPeriodo) { viewModel.setFiltroPeriodo(it) }
+
+            Text(
+                text = periodoTexto,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+                    .clickable { if (filtroPeriodo != "Todo") showDatePicker = true },
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(modifier = Modifier.fillMaxWidth()) {
                 Button(
-                    onClick = { exportarFacturasPDF(context, facturas) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary
-                    )
+                    onClick = { exportarFacturasPDF(context, facturas, periodoTexto) },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
                     Icon(Icons.Default.PictureAsPdf, contentDescription = null)
-                    Spacer(Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text("PDF")
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(
+                    onClick = { exportarFacturasExcel(context, facturas, periodoTexto) },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1D6F42)) // Color Excel
+                ) {
+                    Icon(Icons.Default.TableChart, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Excel")
+                }
+            }
+
+            if (SessionManager.esAdmin()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = {
+                        launcherImportar.launch("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Default.FileUpload, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Importar Facturas desde Excel")
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             if (facturas.isEmpty()) {
-                Text(
-                    "No hay facturas registradas",
-                    color = MaterialTheme.colorScheme.onBackground
-                )
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("No se encontraron facturas", color = Color.Gray)
+                }
             } else {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     items(facturas) { factura ->
-                        androidx.compose.material3.Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surface
-                            ),
-                            elevation = CardDefaults.cardElevation(2.dp)
-                        ) {
-                            Column(modifier = Modifier.padding(12.dp)) {
-                                Text(
-                                    "N°: ${factura.numeroFactura}",
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Text(
-                                    "Proveedor: ${factura.proveedor}",
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    "Fecha: ${factura.fecha}",
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    "Total: $ ${factura.total}",
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        }
+                        FacturaCardItem(factura, viewModel, navController)
                     }
                 }
             }
-        }
-
-        if (false) {
-            RegistrarFacturaDialog(
-                onDismiss = {
-                    // mostrarDialog = false
-                }
-            )
         }
     }
 }
 
 @Composable
-fun RegistrarFacturaDialog(
-
-    onDismiss: () -> Unit
-
+fun PeriodoTabsFactura(
+    periodoSeleccionado: String,
+    onPeriodoSelected: (String) -> Unit
 ) {
-
-    var numeroFactura by remember {
-
-        mutableStateOf("")
-    }
-
-    var fecha by remember {
-
-        mutableStateOf("")
-    }
-
-    var proveedor by remember {
-
-        mutableStateOf("")
-    }
-
-    var total by remember {
-
-        mutableStateOf("")
-    }
-
-    var productos by remember {
-
-        mutableStateOf("")
-    }
-
-    var notas by remember {
-
-        mutableStateOf("")
-    }
-
-    AlertDialog(
-
-        onDismissRequest = {
-
-            onDismiss()
-        },
-
-        title = {
-
-            Text(
-                "Registrar Nueva Factura"
-            )
-        },
-
-        text = {
-
-            Column(
-
-                verticalArrangement =
-                    Arrangement.spacedBy(10.dp)
-
+    val opciones = listOf("Dia", "Semana", "Mes", "Año", "Todo")
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        opciones.forEach { opcion ->
+            val seleccionado = periodoSeleccionado == opcion
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(
+                        if (seleccionado) MaterialTheme.colorScheme.primary else Color.Transparent,
+                        RoundedCornerShape(8.dp)
+                    )
+                    .clickable { onPeriodoSelected(opcion) }
+                    .padding(vertical = 8.dp),
+                contentAlignment = Alignment.Center
             ) {
-
-                // numero factura
-                OutlinedTextField(
-
-                    value =
-                        numeroFactura,
-
-                    onValueChange = {
-
-                        numeroFactura = it
-                    },
-
-                    label = {
-
-                        Text(
-                            "Número Factura"
-                        )
-                    },
-
-                    modifier =
-                        Modifier.fillMaxWidth()
-                )
-
-                // fecha
-                FechaIngresar(
-
-                    fecha = fecha,
-
-                    onFechaChange = {
-
-                        fecha = it
-                    }
-                )
-
-                // proveedor
-                OutlinedTextField(
-
-                    value =
-                        proveedor,
-
-                    onValueChange = {
-
-                        proveedor = it
-                    },
-
-                    label = {
-
-                        Text(
-                            "Proveedor"
-                        )
-                    },
-
-                    modifier =
-                        Modifier.fillMaxWidth()
-                )
-
-                // total
-                OutlinedTextField(
-
-                    value =
-                        total,
-
-                    onValueChange = {
-
-                        total = it
-                    },
-
-                    label = {
-
-                        Text(
-                            "Monto Total"
-                        )
-                    },
-
-                    modifier =
-                        Modifier.fillMaxWidth()
-                )
-
-                // productos
-                OutlinedTextField(
-
-                    value =
-                        productos,
-
-                    onValueChange = {
-
-                        productos = it
-                    },
-
-                    label = {
-
-                        Text(
-                            "Productos"
-                        )
-                    },
-
-                    modifier =
-                        Modifier.fillMaxWidth()
-                )
-
-                // notas
-                OutlinedTextField(
-
-                    value =
-                        notas,
-
-                    onValueChange = {
-
-                        notas = it
-                    },
-
-                    label = {
-
-                        Text(
-                            "Notas"
-                        )
-                    },
-
-                    modifier =
-                        Modifier.fillMaxWidth()
-                )
-            }
-        },
-
-        confirmButton = {
-
-            Button(
-
-                onClick = {
-
-                    onDismiss()
-                }
-
-            ) {
-
                 Text(
-                    "Guardar"
-                )
-            }
-        },
-
-        dismissButton = {
-
-            Button(
-
-                onClick = {
-
-                    onDismiss()
-                }
-
-            ) {
-
-                Text(
-                    "Cancelar"
+                    text = opcion,
+                    color = if (seleccionado) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Normal,
+                    fontSize = 13.sp
                 )
             }
         }
-    )
+    }
+}
+
+@Composable
+fun FacturaCardItem(
+    factura: Factura,
+    viewModel: FacturaViewModel,
+    navController: NavController
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Factura N°: ${factura.numeroFactura}",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "Proveedor: ${factura.proveedor}",
+                        fontSize = 13.sp,
+                        color = Color.Gray
+                    )
+                }
+                Text(
+                    text = "$ ${String.format("%.2f", factura.total)}",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 18.sp
+                )
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.CalendarToday, contentDescription = null, modifier = Modifier.size(14.dp), tint = Color.Gray)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(factura.fecha, fontSize = 12.sp, color = Color.Gray)
+                    }
+                    if (factura.productos.isNotEmpty()) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.ShoppingCart, contentDescription = null, modifier = Modifier.size(14.dp), tint = Color.Gray)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = factura.productos,
+                                fontSize = 12.sp,
+                                color = Color.Gray,
+                                maxLines = 1
+                            )
+                        }
+                    }
+                }
+
+                if (SessionManager.esAdmin()) {
+                    Row {
+                        IconButton(onClick = { 
+                            if (SessionManager.esAdmin()) {
+                                navController.navigate("editarFactura/${factura.id}") 
+                            }
+                        }) {
+                            Icon(Icons.Default.Edit, contentDescription = "Editar", tint = MaterialTheme.colorScheme.primary)
+                        }
+                        IconButton(onClick = { 
+                            if (SessionManager.esAdmin()) {
+                                viewModel.eliminarFactura(factura) 
+                            }
+                        }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

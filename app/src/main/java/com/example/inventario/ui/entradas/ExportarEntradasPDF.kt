@@ -2,60 +2,66 @@ package com.example.inventario.ui.entradas
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
+import android.net.Uri
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.example.inventario.data.Entrada
 import java.io.File
 import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-fun exportarEntradasPDF(
-    context: Context,
-    entradas: List<Entrada>
-) {
+fun exportarEntradasPDF(context: Context, entradas: List<Entrada>, periodo: String) {
     val file = File(context.cacheDir, "entradas_${System.currentTimeMillis()}.pdf")
     val pdfDocument = PdfDocument()
-    val paint = Paint()
-    val titlePaint = Paint()
-
-    val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
+    
+    // Ancho ampliado para reporte detallado
+    val pageInfo = PdfDocument.PageInfo.Builder(1400, 2000, 1).create()
     val page = pdfDocument.startPage(pageInfo)
-    val canvas: Canvas = page.canvas
+    val canvas = page.canvas
 
-    titlePaint.textSize = 18f
-    titlePaint.isFakeBoldText = true
-    canvas.drawText("Reporte de Entradas de Inventario", 40f, 50f, titlePaint)
+    val tituloPaint = Paint().apply { textSize = 30f; isFakeBoldText = true }
+    val subtituloPaint = Paint().apply { textSize = 20f; isFakeBoldText = false }
+    val textoPaint = Paint().apply { textSize = 14f }
+    val encabezadoPaint = Paint().apply { textSize = 14f; isFakeBoldText = true }
+    val lineaPaint = Paint().apply { strokeWidth = 1f }
 
-    paint.textSize = 12f
-    var yPosition = 100f
+    canvas.drawText("Reporte Detallado de Entradas", 50f, 60f, tituloPaint)
+    canvas.drawText("Periodo: $periodo", 50f, 95f, subtituloPaint)
+    
+    val fechaActual = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
+    canvas.drawText("Generado el: $fechaActual", 50f, 130f, textoPaint)
 
+    var y = 180f
     // Encabezados
-    paint.isFakeBoldText = true
-    canvas.drawText("Fecha", 40f, yPosition, paint)
-    canvas.drawText("Código", 120f, yPosition, paint)
-    canvas.drawText("Descripción", 200f, yPosition, paint)
-    canvas.drawText("Cant.", 400f, yPosition, paint)
-    canvas.drawText("Proveedor", 460f, yPosition, paint)
+    canvas.drawText("Fecha", 40f, y, encabezadoPaint)
+    canvas.drawText("Código", 150f, y, encabezadoPaint)
+    canvas.drawText("Descripción", 270f, y, encabezadoPaint)
+    canvas.drawText("Cant.", 550f, y, encabezadoPaint)
+    canvas.drawText("Unidad", 630f, y, encabezadoPaint)
+    canvas.drawText("Ubicación", 730f, y, encabezadoPaint)
+    canvas.drawText("Proveedor", 880f, y, encabezadoPaint)
+    canvas.drawText("Notas", 1100f, y, encabezadoPaint)
 
-    yPosition += 20f
-    paint.isFakeBoldText = false
-    canvas.drawLine(40f, yPosition - 10f, 550f, yPosition - 10f, paint)
+    y += 10f
+    canvas.drawLine(40f, y, 1360f, y, lineaPaint)
+    y += 35f
 
-    entradas.forEach { entrada ->
-        if (yPosition > 800) {
-            pdfDocument.finishPage(page)
-            // Aquí se podría añadir lógica para nueva página si fuera necesario
-            return@forEach 
-        }
-        canvas.drawText(entrada.fecha, 40f, yPosition, paint)
-        canvas.drawText(entrada.codigo, 120f, yPosition, paint)
-        canvas.drawText(entrada.descripcion.take(20), 200f, yPosition, paint)
-        canvas.drawText(entrada.cantidad.toString(), 400f, yPosition, paint)
-        canvas.drawText(entrada.proveedor.take(15), 460f, yPosition, paint)
-        yPosition += 20f
+    entradas.forEach { e ->
+        if (y > 1900) return@forEach // Simplificación para demo
+
+        canvas.drawText(e.fecha.take(10), 40f, y, textoPaint)
+        canvas.drawText(e.codigo, 150f, y, textoPaint)
+        canvas.drawText(e.descripcion.take(25), 270f, y, textoPaint)
+        canvas.drawText(e.cantidad.toString(), 550f, y, textoPaint)
+        canvas.drawText(e.unidad, 630f, y, textoPaint)
+        canvas.drawText(e.ubicacion, 730f, y, textoPaint)
+        canvas.drawText(e.proveedor.take(20), 880f, y, textoPaint)
+        canvas.drawText(e.notas.take(30), 1100f, y, textoPaint)
+        y += 30f
     }
 
     pdfDocument.finishPage(page)
@@ -63,19 +69,15 @@ fun exportarEntradasPDF(
     try {
         val fos = FileOutputStream(file)
         pdfDocument.writeTo(fos)
-        fos.flush()
         fos.close()
         pdfDocument.close()
 
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-        val intent = Intent(Intent.ACTION_VIEW).apply {
+        context.startActivity(Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uri, "application/pdf")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        context.startActivity(Intent.createChooser(intent, "Abrir Reporte de Entradas"))
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+        })
     } catch (e: Exception) {
-        e.printStackTrace()
-        Toast.makeText(context, "Error al generar PDF: ${e.message}", Toast.LENGTH_LONG).show()
+        Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
     }
 }

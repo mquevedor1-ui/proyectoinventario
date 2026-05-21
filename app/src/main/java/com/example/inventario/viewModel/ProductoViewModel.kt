@@ -207,26 +207,41 @@ class ProductoViewModel(
         }
     }
 
-    // eliminar producto
-
+    // eliminar producto (Soft Delete)
     fun eliminarProducto(
-
         producto: producto
-
     ) {
-
         viewModelScope.launch(
-
             Dispatchers.IO
-
         ) {
-
             repository
-                .eliminarProducto(
+                .softEliminarProducto(
                     producto
                 )
         }
     }
+
+    fun restaurarProducto(producto: producto) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.restaurarProducto(producto)
+        }
+    }
+
+    fun obtenerPapelera() = repository.getProductosPapelera()
+
+    fun purgarAntiguos() {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.purgarProductosAntiguos(90)
+        }
+    }
+
+    fun eliminarPermanente(producto: producto) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.eliminarProductoPermanente(producto)
+        }
+    }
+
+    fun obtenerProductosBajoStock() = dao.obtenerProductosBajoStock()
 
     // =========================
     // SUMAR CANTIDAD

@@ -1,463 +1,199 @@
 package com.example.inventario.ui.entradas
 
-
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.PictureAsPdf
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.inventario.ui.AppTopBar
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import java.util.Calendar
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.inventario.data.Entrada
+import com.example.inventario.ui.AppTopBar
+import com.example.inventario.ui.inventario.importarEntradasExcel
 import com.example.inventario.viewModel.EntradaViewModel
-import com.example.inventario.viewModel.ProductoViewModel
 import com.example.inventario.viewModel.SessionManager
 
 @OptIn(ExperimentalMaterial3Api::class)
-
 @Composable
 fun EntradasScreen(
-
     navController: NavController,
-
     bodegaId: String
-
 ) {
-
     val context = LocalContext.current
+    val entradaViewModel: EntradaViewModel = viewModel()
 
-    val entradaViewModel:
-            EntradaViewModel = viewModel()
+    // Launcher para importar Excel
+    val launcherImportar = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            val entradasImportadas = importarEntradasExcel(context, it, bodegaId)
+            entradasImportadas.forEach { e ->
+                entradaViewModel.agregarEntrada(e)
+            }
+        }
+    }
 
-    val productoViewModel:
-            ProductoViewModel = viewModel()
+    val searchQuery by entradaViewModel.searchQuery.collectAsState()
+    val filtroPeriodo by entradaViewModel.filtroPeriodo.collectAsState()
+    val periodoTexto by entradaViewModel.periodoTexto.collectAsState()
+    val fechaReferencia by entradaViewModel.fechaReferencia.collectAsState()
+    val entradas by entradaViewModel.obtenerEntradasFiltradas(bodegaId).collectAsState(initial = emptyList())
 
-    val entradas by entradaViewModel
-        .allEntradas
-        .collectAsState(
-            initial = emptyList()
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = fechaReferencia.timeInMillis
         )
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val cal = Calendar.getInstance().apply { timeInMillis = millis + (1000 * 60 * 60 * 24) } // Ajuste zona horaria si es necesario
+                        entradaViewModel.setFechaReferencia(cal)
+                    }
+                    showDatePicker = false
+                }) { Text("Aceptar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) { Text("Cancelar") }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
 
     LaunchedEffect(Unit) {
-
-        entradaViewModel
-            .sincronizarDesdeFirebase()
+        entradaViewModel.sincronizarDesdeFirebase()
     }
 
     Scaffold(
-
-        containerColor =
-            MaterialTheme.colorScheme.background,
-
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-
             AppTopBar(
-
-                titulo =
-                    "Reporte de Entradas",
-
-                subtitulo =
-                    "Bodega: $bodegaId",
-
-                navController =
-                    navController
+                titulo = "Historial de Entradas",
+                subtitulo = "Bodega: $bodegaId",
+                navController = navController
             )
         },
-
         floatingActionButton = {
-
-            if (
-
-                SessionManager.esAdmin()
-                ||
-                SessionManager.rolUsuario()
-                ==
-                "encargado"
-
-            ) {
-
+            if (SessionManager.esAdmin() || SessionManager.rolUsuario() == "encargado") {
                 FloatingActionButton(
-
-                    onClick = {
-
-                        navController.navigate(
-
-                            "crearEntrada/$bodegaId"
-                        )
-                    },
-
-                    containerColor =
-                        MaterialTheme.colorScheme.primary,
-
-                    contentColor =
-                        MaterialTheme.colorScheme.onPrimary
-
+                    onClick = { navController.navigate("crearEntrada/$bodegaId") },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 ) {
-
-                    Row(
-
-                        modifier =
-                            Modifier.padding(
-                                horizontal = 12.dp
-                            ),
-
-                        verticalAlignment =
-                            Alignment.CenterVertically
-
-                    ) {
-
-                        Icon(
-
-                            Icons.Default.Add,
-
-                            contentDescription =
-                                null
-                        )
-
-                        Spacer(
-
-                            modifier =
-                                Modifier.width(6.dp)
-                        )
-
-                        Text(
-                            "Registrar"
-                        )
-                    }
+                    Icon(Icons.Default.Add, contentDescription = "Registrar")
                 }
             }
         }
-
     ) { padding ->
-
         Column(
-
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp)
-
         ) {
+            // Buscador
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { entradaViewModel.setSearchQuery(it) },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Buscar por código o descripción...") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true
+            )
 
-            // tabs
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Row(
+            // Selector de Periodo (Estilo Tabs)
+            PeriodoTabs(filtroPeriodo) { entradaViewModel.setFiltroPeriodo(it) }
 
+            Text(
+                text = periodoTexto,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(
-
-                        MaterialTheme
-                            .colorScheme
-                            .surfaceVariant,
-
-                        RoundedCornerShape(20.dp)
-                    )
-                    .padding(4.dp),
-
-                horizontalArrangement =
-                    Arrangement.SpaceBetween
-
-            ) {
-
-                Text(
-
-                    text = "Por Día",
-
-                    modifier = Modifier
-                        .weight(1f)
-                        .background(
-
-                            MaterialTheme
-                                .colorScheme
-                                .surface,
-
-                            RoundedCornerShape(
-                                20.dp
-                            )
-                        )
-                        .padding(10.dp),
-
-                    textAlign =
-                        TextAlign.Center,
-
-                    fontWeight =
-                        FontWeight.Bold
-                )
-
-                Text(
-
-                    text = "Por Semana",
-
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(10.dp),
-
-                    textAlign =
-                        TextAlign.Center
-                )
-
-                Text(
-
-                    text = "Por Mes",
-
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(10.dp),
-
-                    textAlign =
-                        TextAlign.Center
-                )
-            }
-
-            Spacer(
-                modifier = Modifier.height(16.dp)
+                    .padding(vertical = 8.dp)
+                    .clickable { if (filtroPeriodo != "Todo") showDatePicker = true },
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
             )
 
-            // exportar
+            Spacer(modifier = Modifier.height(8.dp))
 
-            Button(
-
-                onClick = {
-
-                    exportarEntradasPDF(
-
-                        context,
-
-                        entradas
-                    )
-                },
-
-                modifier =
-                    Modifier.fillMaxWidth(),
-
-                colors =
-                    ButtonDefaults.buttonColors(
-
-                        containerColor =
-                            MaterialTheme
-                                .colorScheme
-                                .primary
-                    )
-            ) {
-
-                Icon(
-
-                    Icons.Default.PictureAsPdf,
-
-                    contentDescription =
-                        null
-                )
-
-                Spacer(
-                    modifier =
-                        Modifier.width(8.dp)
-                )
-
-                Text(
-                    "Exportar PDF"
-                )
-            }
-
-            Spacer(
-                modifier = Modifier.height(16.dp)
-            )
-
-            // tabla
-
-            Card(
-
-                modifier =
-                    Modifier.fillMaxWidth(),
-
-                shape =
-                    RoundedCornerShape(18.dp),
-
-                colors =
-                    CardDefaults.cardColors(
-
-                        containerColor =
-                            MaterialTheme
-                                .colorScheme
-                                .surface
-                    )
-            ) {
-
-                Column(
-
-                    modifier =
-                        Modifier.padding(16.dp)
-
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = { exportarEntradasPDF(context, entradas, periodoTexto) },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
+                    Icon(Icons.Default.PictureAsPdf, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("PDF")
+                }
 
-                    // encabezados
+                Spacer(modifier = Modifier.width(8.dp))
 
-                    Row(
+                Button(
+                    onClick = { exportarEntradasExcel(context, entradas, periodoTexto) },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1D6F42))
+                ) {
+                    Icon(Icons.Default.TableChart, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Excel")
+                }
+            }
 
-                        modifier =
-                            Modifier.fillMaxWidth(),
+            if (SessionManager.esAdmin()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = {
+                        launcherImportar.launch("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Default.FileUpload, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Importar Entradas desde Excel")
+                }
+            }
 
-                        horizontalArrangement =
-                            Arrangement.SpaceBetween
+            Spacer(modifier = Modifier.height(16.dp))
 
-                    ) {
-
-                        Text(
-
-                            "Fecha",
-
-                            modifier =
-                                Modifier.weight(1f),
-
-                            fontWeight =
-                                FontWeight.Bold
-                        )
-
-                        Text(
-
-                            "Código",
-
-                            modifier =
-                                Modifier.weight(1f),
-
-                            fontWeight =
-                                FontWeight.Bold
-                        )
-
-                        Text(
-
-                            "Descripción",
-
-                            modifier =
-                                Modifier.weight(1.5f),
-
-                            fontWeight =
-                                FontWeight.Bold
-                        )
-
-                        Text(
-
-                            "Cant.",
-
-                            modifier =
-                                Modifier.weight(0.8f),
-
-                            fontWeight =
-                                FontWeight.Bold,
-
-                            textAlign =
-                                TextAlign.End
-                        )
-
-                        if (
-
-                            SessionManager.esAdmin()
-
-                        ) {
-
-                            Spacer(
-
-                                modifier =
-                                    Modifier.width(50.dp)
-                            )
-                        }
-                    }
-
-                    HorizontalDivider(
-
-                        modifier =
-                            Modifier.padding(
-                                vertical = 12.dp
-                            )
-                    )
-
-                    // vacio
-
-                    if (
-
-                        entradas.isEmpty()
-
-                    ) {
-
-                        Text(
-
-                            text =
-                                "No hay entradas registradas",
-
-                            modifier = Modifier
-                                .padding(30.dp)
-                                .align(
-                                    Alignment.CenterHorizontally
-                                ),
-
-                            color =
-                                MaterialTheme
-                                    .colorScheme
-                                    .onSurfaceVariant
-                        )
-                    }
-
-                    // lista
-
-                    LazyColumn(
-
-                        verticalArrangement =
-                            Arrangement.spacedBy(10.dp)
-
-                    ) {
-
-                        items(entradas) { entrada ->
-
-                            EntradaRow(
-
-                                entrada = entrada,
-
-                                viewModel =
-                                    entradaViewModel,
-
-                                productoViewModel =
-                                    productoViewModel
-                            )
-                        }
+            if (entradas.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("No se encontraron entradas", color = Color.Gray)
+                }
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(entradas) { entrada ->
+                        EntradaCardItem(entrada, entradaViewModel, navController)
                     }
                 }
             }
@@ -466,128 +202,132 @@ fun EntradasScreen(
 }
 
 @Composable
-
-
-fun EntradaRow(
-
-    entrada: Entrada,
-
-    viewModel: EntradaViewModel,
-
-    productoViewModel: ProductoViewModel
-
+fun PeriodoTabs(
+    periodoSeleccionado: String,
+    onPeriodoSelected: (String) -> Unit
 ) {
-
-    var productoNombre by remember {
-
-        mutableStateOf("...")
-    }
-
-    LaunchedEffect(
-
-        entrada.codigo
-
-    ) {
-
-        val producto =
-
-            productoViewModel
-                .obtenerProductoPorCodigo(
-
-                    entrada.codigo
-                )
-
-        productoNombre =
-            producto?.descripcion ?: "N/A"
-    }
-
+    val opciones = listOf("Dia", "Semana", "Mes", "Año", "Todo")
     Row(
-
-        modifier =
-            Modifier.fillMaxWidth(),
-
-        verticalAlignment =
-            Alignment.CenterVertically
-
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-
-        Text(
-
-            entrada.fecha,
-
-            modifier =
-                Modifier.weight(1f),
-
-            fontSize = 12.sp
-        )
-
-        Text(
-
-            entrada.codigo,
-
-            modifier =
-                Modifier.weight(1f),
-
-            fontSize = 12.sp
-        )
-
-        Text(
-
-            productoNombre,
-
-            modifier =
-                Modifier.weight(1.5f),
-
-            fontSize = 12.sp,
-
-            maxLines = 1
-        )
-
-        Text(
-
-            "${entrada.cantidad}",
-
-            modifier =
-                Modifier.weight(0.8f),
-
-            textAlign =
-                TextAlign.End,
-
-            fontWeight =
-                FontWeight.Bold
-        )
-
-        if (
-
-            SessionManager.esAdmin()
-
-        ) {
-
-            IconButton(
-
-                onClick = {
-
-                    viewModel
-                        .eliminarEntrada(
-                            entrada
-                        )
-                }
-
+        opciones.forEach { opcion ->
+            val seleccionado = periodoSeleccionado == opcion
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(
+                        if (seleccionado) MaterialTheme.colorScheme.primary else Color.Transparent,
+                        RoundedCornerShape(8.dp)
+                    )
+                    .clickable { onPeriodoSelected(opcion) }
+                    .padding(vertical = 8.dp),
+                contentAlignment = Alignment.Center
             ) {
-
-                Icon(
-
-                    Icons.Default.Delete,
-
-                    contentDescription =
-                        "Eliminar",
-
-                    tint =
-                        MaterialTheme
-                            .colorScheme
-                            .error
+                Text(
+                    text = opcion,
+                    color = if (seleccionado) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Normal,
+                    fontSize = 13.sp
                 )
             }
         }
     }
 }
+
+@Composable
+fun EntradaCardItem(
+    entrada: Entrada,
+    viewModel: EntradaViewModel,
+    navController: NavController
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = entrada.descripcion,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = "Código: ${entrada.codigo}",
+                        fontSize = 13.sp,
+                        color = Color.Gray
+                    )
+                }
+                Text(
+                    text = "+${entrada.cantidad}",
+                    color = Color(0xFF2E7D32), // Verde bosque
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 18.sp
+                )
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.CalendarToday,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = Color.Gray
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(entrada.fecha, fontSize = 12.sp, color = Color.Gray)
+                    }
+                    if (entrada.proveedor.isNotEmpty()) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp),
+                                tint = Color.Gray
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(entrada.proveedor, fontSize = 12.sp, color = Color.Gray)
+                        }
+                    }
+                }
+
+                if (SessionManager.esAdmin()) {
+                    Row {
+                        IconButton(onClick = { 
+                            if (SessionManager.esAdmin()) {
+                                navController.navigate("editarEntrada/${entrada.id}") 
+                            }
+                        }) {
+                            Icon(Icons.Default.Edit, contentDescription = "Editar", tint = MaterialTheme.colorScheme.primary)
+                        }
+                        IconButton(onClick = { 
+                            if (SessionManager.esAdmin()) {
+                                viewModel.eliminarEntrada(entrada) 
+                            }
+                        }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+

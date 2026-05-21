@@ -54,7 +54,7 @@ fun ConfigScreen(
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
-                
+
                 ConfigItem(
                     title = "Gestión de Usuarios",
                     subtitle = "Listar, eliminar y ver roles de usuarios",
@@ -67,6 +67,13 @@ fun ConfigScreen(
                     subtitle = "Registrar personal con rol admin o usuario",
                     icon = Icons.Default.PersonAdd,
                     onClick = { navController.navigate("crearUsuario") }
+                )
+
+                ConfigItem(
+                    title = "Papelera de Reciclaje",
+                    subtitle = "Restaurar productos, entradas, salidas o facturas",
+                    icon = Icons.Default.Delete,
+                    onClick = { navController.navigate("papelera") }
                 )
             }
 
@@ -88,8 +95,17 @@ fun ConfigScreen(
                 title = "Notificaciones",
                 subtitle = "Configurar alertas de stock bajo",
                 icon = Icons.Default.Notifications,
-                onClick = { /* Implementar después */ }
+                onClick = { navController.navigate("notificaciones") }
             )
+
+            if (SessionManager.esAdmin()) {
+                ConfigItem(
+                    title = "Avisos de Movimiento",
+                    subtitle = "Activar/Desactivar avisos de entradas y salidas",
+                    icon = Icons.Default.NotificationAdd,
+                    onClick = { /* Implementación pendiente */ }
+                )
+            }
             
             Spacer(modifier = Modifier.height(20.dp))
             

@@ -117,6 +117,16 @@ fun CrearEntradasScreen(
         mutableStateOf("")
     }
 
+    // stock bajo (mínimo)
+    var stockMinimo by remember {
+        mutableStateOf("")
+    }
+
+    // numero factura
+    var numeroFactura by remember {
+        mutableStateOf("")
+    }
+
     // notas
 
     var notas by remember {
@@ -183,6 +193,9 @@ fun CrearEntradasScreen(
 
                 costo =
                     producto.costo.toString()
+
+                stockMinimo =
+                    producto.stockMinimo.toString()
 
                 proveedor =
                     producto.proveedor
@@ -410,12 +423,36 @@ fun CrearEntradasScreen(
                             label = {
 
                                 Text(
-                                    "Costo"
+                                    "Costo Unitario"
                                 )
                             },
 
                             modifier =
                                 Modifier.weight(1f)
+                        )
+                    }
+
+                    Spacer(
+                        modifier =
+                            Modifier.height(16.dp)
+                    )
+
+                    // Stock Bajo y Factura
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = stockMinimo,
+                            onValueChange = { stockMinimo = it },
+                            label = { Text("Stock Bajo (Alerta)") },
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        OutlinedTextField(
+                            value = numeroFactura,
+                            onValueChange = { numeroFactura = it },
+                            label = { Text("N° Factura") },
+                            modifier = Modifier.weight(1f)
                         )
                     }
 
@@ -638,68 +675,22 @@ fun CrearEntradasScreen(
                                             costo.toDoubleOrNull()
                                                 ?: 0.0,
 
+                                        stockMinimo =
+                                            stockMinimo.toIntOrNull()
+                                                ?: 0,
+
+                                        numeroFactura =
+                                            numeroFactura,
+
                                         bodegaId =
                                             bodegaId
                                     )
 
-                                    // guardar entrada
-
+                                    // guardar entrada y actualizar inventario
                                     entradaViewModel
                                         .agregarEntrada(
                                             entrada
                                         )
-
-                                    // actualizar inventario
-
-                                    val productoExistente =
-
-                                        productoViewModel
-                                            .obtenerProductoPorCodigo(
-                                                codigo
-                                            )
-
-                                    if (
-
-                                        productoExistente != null
-
-                                    ) {
-
-                                        val productoActualizado =
-
-                                            productoExistente.copy(
-
-                                                cantidad =
-                                                    productoExistente.cantidad +
-                                                            (
-                                                                    cantidad.toIntOrNull()
-                                                                        ?: 0
-                                                                    ),
-
-                                                unidad =
-                                                    unidad,
-
-                                                ubicacion =
-                                                    ubicacion,
-
-                                                proveedor =
-                                                    proveedor,
-
-                                                costo =
-                                                    costo.toDoubleOrNull()
-                                                        ?: 0.0,
-
-                                                fechaIngreso =
-                                                    fecha,
-
-                                                notas =
-                                                    notas
-                                            )
-
-                                        productoViewModel
-                                            .actualizarProducto(
-                                                productoActualizado
-                                            )
-                                    }
 
                                     navController
                                         .popBackStack()
