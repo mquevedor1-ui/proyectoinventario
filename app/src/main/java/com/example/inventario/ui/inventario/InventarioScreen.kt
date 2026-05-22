@@ -520,7 +520,10 @@ fun ProductoCard(
                         text =
                             "Costo: Q ${producto.costo}"
                     )
-
+                    Text(
+                        text =
+                            "Presupuesto: Q ${producto.presupuesto}"
+                    )
                     Text(
                         text =
                             "Fecha: ${producto.fechaIngreso}"

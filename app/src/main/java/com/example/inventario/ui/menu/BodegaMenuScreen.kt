@@ -83,6 +83,15 @@ fun BodegaMenuScreen(
             "Alertas",
             "stockBajo/$bodegaId",
             Color(0xFFFF6D00)
+        ),
+
+        // NUEVO DASHBOARD
+
+        OpcionBodega(
+            "Dashboard",
+            "Estadísticas",
+            "dashboard/$bodegaId",
+            Color(0xFF0091EA)
         )
     )
 
@@ -246,6 +255,13 @@ fun BodegaMenuScreen(
                                 "stockBajo"
                             ) ->
                                 "stockBajo"
+
+                            // NUEVO DASHBOARD
+
+                            opcion.ruta.contains(
+                                "dashboard"
+                            ) ->
+                                "dashboard"
 
                             else ->
                                 "inventario"

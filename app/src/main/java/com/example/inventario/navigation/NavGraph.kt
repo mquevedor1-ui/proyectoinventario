@@ -1,4 +1,5 @@
 package com.example.inventario.navigation
+
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 
@@ -13,7 +14,6 @@ import com.example.inventario.ui.login.LoginScreen
 import com.example.inventario.ui.menu.MenuPScreen
 import com.example.inventario.ui.menu.BodegaMenuScreen
 import com.example.inventario.ui.menu.CrearBodegaScreen
-
 
 import com.example.inventario.ui.inventario.CrearProductoScreen
 import com.example.inventario.ui.inventario.EditarProductoScreen
@@ -40,6 +40,11 @@ import com.example.inventario.ui.Salidas.EditarSalidaScreen
 import com.example.inventario.ui.Facturas.EditarFacturaScreen
 import com.example.inventario.ui.papelera.PapeleraScreen
 
+import com.example.inventario.ui.dashboard.DashboardScreen
+
+// NUEVO IMPORT
+import com.example.inventario.ui.presupuesto.PresupuestoScreen
+import com.example.inventario.ui.StockBajo.StockBajoScreen
 @Composable
 fun NavGraph() {
 
@@ -406,6 +411,96 @@ fun NavGraph() {
             )
         }
 
+        // DASHBOARD NUEVO
+
+        composable(
+
+            route =
+                "dashboard/{bodegaId}",
+
+            arguments = listOf(
+
+                navArgument("bodegaId") {
+
+                    type = NavType.StringType
+                }
+            )
+
+        ) { backStackEntry ->
+
+            val bodegaId =
+
+                backStackEntry
+                    .arguments
+                    ?.getString("bodegaId")
+                    ?: ""
+
+            DashboardScreen(
+
+                bodegaId = bodegaId
+            )
+        }
+// STOCK BAJO
+
+        composable(
+
+            route =
+                "stockBajo/{bodegaId}",
+
+            arguments = listOf(
+
+                navArgument("bodegaId") {
+
+                    type = NavType.StringType
+                }
+            )
+
+        ) { backStackEntry ->
+
+            val bodegaId =
+
+                backStackEntry
+                    .arguments
+                    ?.getString("bodegaId")
+                    ?: ""
+
+            StockBajoScreen(
+
+                navController = navController,
+
+                bodegaId = bodegaId
+            )
+        }
+        // PRESUPUESTO NUEVO
+
+        composable(
+
+            route =
+                "presupuesto/{bodegaId}",
+
+            arguments = listOf(
+
+                navArgument("bodegaId") {
+
+                    type = NavType.StringType
+                }
+            )
+
+        ) { backStackEntry ->
+
+            val bodegaId =
+
+                backStackEntry
+                    .arguments
+                    ?.getString("bodegaId")
+                    ?: ""
+
+            PresupuestoScreen(
+
+                bodegaId = bodegaId
+            )
+        }
+
         // configuracion
 
         composable("configuracion") {
@@ -442,8 +537,12 @@ fun NavGraph() {
         }
 
         // notificaciones
+
         composable("notificaciones") {
-            NotificacionesScreen(navController = navController)
+
+            NotificacionesScreen(
+                navController = navController
+            )
         }
 
         // crear usuario
@@ -459,42 +558,112 @@ fun NavGraph() {
         }
 
         // editar entrada
+
         composable(
+
             route = "editarEntrada/{entradaId}",
-            arguments = listOf(navArgument("entradaId") { type = NavType.IntType })
+
+            arguments = listOf(
+
+                navArgument("entradaId") {
+
+                    type = NavType.IntType
+                }
+            )
+
         ) { backStackEntry ->
-            val id = backStackEntry.arguments?.getInt("entradaId") ?: 0
-            EditarEntradaScreen(navController, id)
+
+            val id =
+
+                backStackEntry
+                    .arguments
+                    ?.getInt("entradaId")
+                    ?: 0
+
+            EditarEntradaScreen(
+                navController,
+                id
+            )
         }
 
         // editar salida
+
         composable(
+
             route = "editarSalida/{salidaId}",
-            arguments = listOf(navArgument("salidaId") { type = NavType.IntType })
+
+            arguments = listOf(
+
+                navArgument("salidaId") {
+
+                    type = NavType.IntType
+                }
+            )
+
         ) { backStackEntry ->
-            val id = backStackEntry.arguments?.getInt("salidaId") ?: 0
-            EditarSalidaScreen(navController, id)
+
+            val id =
+
+                backStackEntry
+                    .arguments
+                    ?.getInt("salidaId")
+                    ?: 0
+
+            EditarSalidaScreen(
+                navController,
+                id
+            )
         }
 
         // editar factura
+
         composable(
+
             route = "editarFactura/{facturaId}",
-            arguments = listOf(navArgument("facturaId") { type = NavType.IntType })
+
+            arguments = listOf(
+
+                navArgument("facturaId") {
+
+                    type = NavType.IntType
+                }
+            )
+
         ) { backStackEntry ->
-            val id = backStackEntry.arguments?.getInt("facturaId") ?: 0
-            EditarFacturaScreen(navController, id)
+
+            val id =
+
+                backStackEntry
+                    .arguments
+                    ?.getInt("facturaId")
+                    ?: 0
+
+            EditarFacturaScreen(
+                navController,
+                id
+            )
         }
 
         // papelera
+
         composable("papelera") {
+
             PapeleraScreen(
+
                 navController = navController,
+
                 productoViewModel = viewModel(),
+
                 entradaViewModel = viewModel(),
+
                 salidaViewModel = viewModel(),
+
                 facturaViewModel = viewModel(),
+
                 bodegaViewModel = viewModel(),
+
                 usuarioViewModel = viewModel(),
+
                 categoriaViewModel = viewModel()
             )
         }

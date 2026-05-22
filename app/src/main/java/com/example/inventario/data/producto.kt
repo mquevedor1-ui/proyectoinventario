@@ -1,6 +1,5 @@
 package com.example.inventario.data
 
-
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -30,6 +29,12 @@ data class producto(
     // cantidad
     val cantidad: Int = 0,
 
+    // presupuesto
+    val presupuesto: Double = 0.0,
+
+    // alerta de stock bajo
+    val stockBajo: Boolean = false,
+
     // unidad
     val unidad: String = "",
 
@@ -51,7 +56,8 @@ data class producto(
     // notas
     val notas: String = "",
 
-    // Papelera
+    // papelera
     val isDeleted: Boolean = false,
+
     val deletionDate: Long? = null
 )

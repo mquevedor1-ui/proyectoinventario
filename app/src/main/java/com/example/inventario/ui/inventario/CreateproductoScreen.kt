@@ -101,6 +101,24 @@ fun CrearProductoScreen(
         mutableStateOf("")
     }
 
+    // existencias
+    var cantidad by remember {
+
+        mutableStateOf("")
+    }
+
+    // presupuesto
+    var presupuesto by remember {
+
+        mutableStateOf("")
+    }
+
+    // stock minimo
+    var stockMinimo by remember {
+
+        mutableStateOf("")
+    }
+
     fun actualizarCodigo(
 
         nuevoPrefijo: String
@@ -294,6 +312,66 @@ fun CrearProductoScreen(
                             Modifier.fillMaxWidth()
                     )
 
+                    // existencias
+
+                    OutlinedTextField(
+
+                        value = cantidad,
+
+                        onValueChange = {
+
+                            cantidad = it
+                        },
+
+                        label = {
+
+                            Text("Existencias")
+                        },
+
+                        modifier =
+                            Modifier.fillMaxWidth()
+                    )
+
+                    // presupuesto
+
+                    OutlinedTextField(
+
+                        value = presupuesto,
+
+                        onValueChange = {
+
+                            presupuesto = it
+                        },
+
+                        label = {
+
+                            Text("Presupuesto")
+                        },
+
+                        modifier =
+                            Modifier.fillMaxWidth()
+                    )
+
+                    // stock minimo
+
+                    OutlinedTextField(
+
+                        value = stockMinimo,
+
+                        onValueChange = {
+
+                            stockMinimo = it
+                        },
+
+                        label = {
+
+                            Text("Stock Mínimo")
+                        },
+
+                        modifier =
+                            Modifier.fillMaxWidth()
+                    )
+
                     // nueva categoria
 
                     if (
@@ -328,38 +406,80 @@ fun CrearProductoScreen(
 
                             onClick = {
 
-                                    val nombre = nuevaCategoria.trim()
-                                    if (nombre.isNotEmpty()) {
-                                        coroutineScope.launch {
-                                            var pfx = nombre.take(1).uppercase()
-                                            var i = 1
-                                            while (i < nombre.length && categoriaViewModel.buscarPorPrefijo(pfx) != null) {
-                                                i++
-                                                pfx = nombre.take(i).uppercase()
-                                            }
-                                            
-                                            // Si llegamos al final y sigue existiendo, agregamos un número
-                                            if (categoriaViewModel.buscarPorPrefijo(pfx) != null) {
-                                                var count = 1
-                                                while (categoriaViewModel.buscarPorPrefijo(pfx + count) != null) {
-                                                    count++
-                                                }
-                                                pfx += count
+                                val nombre = nuevaCategoria.trim()
+
+                                if (nombre.isNotEmpty()) {
+
+                                    coroutineScope.launch {
+
+                                        var pfx =
+                                            nombre.take(1).uppercase()
+
+                                        var i = 1
+
+                                        while (
+
+                                            i < nombre.length
+                                            &&
+                                            categoriaViewModel
+                                                .buscarPorPrefijo(pfx) != null
+
+                                        ) {
+
+                                            i++
+
+                                            pfx =
+                                                nombre.take(i).uppercase()
+                                        }
+
+                                        if (
+
+                                            categoriaViewModel
+                                                .buscarPorPrefijo(pfx) != null
+
+                                        ) {
+
+                                            var count = 1
+
+                                            while (
+
+                                                categoriaViewModel
+                                                    .buscarPorPrefijo(
+                                                        pfx + count
+                                                    ) != null
+
+                                            ) {
+
+                                                count++
                                             }
 
-                                            categoriaViewModel.insertarCategoria(
+                                            pfx += count
+                                        }
+
+                                        categoriaViewModel
+                                            .insertarCategoria(
+
                                                 categoria(
+
                                                     nombre = nombre,
+
                                                     prefijo = pfx
                                                 )
                                             )
 
-                                            categoriaSeleccionada = nombre
-                                            prefijoSeleccionado = pfx
-                                            actualizarCodigo(pfx)
-                                            nuevaCategoria = ""
-                                        }
+                                        categoriaSeleccionada =
+                                            nombre
+
+                                        prefijoSeleccionado =
+                                            pfx
+
+                                        actualizarCodigo(
+                                            pfx
+                                        )
+
+                                        nuevaCategoria = ""
                                     }
+                                }
                             }
 
                         ) {
@@ -401,6 +521,12 @@ fun CrearProductoScreen(
 
                             coroutineScope.launch {
 
+                                val cantidadInt =
+                                    cantidad.toIntOrNull() ?: 0
+
+                                val stockMinimoInt =
+                                    stockMinimo.toIntOrNull() ?: 0
+
                                 productoViewModel
                                     .agregarProducto(
 
@@ -421,7 +547,14 @@ fun CrearProductoScreen(
                                             prefijoCategoria =
                                                 prefijoSeleccionado,
 
-                                            cantidad = 0,
+                                            cantidad =
+                                                cantidadInt,
+
+                                            presupuesto =
+                                                presupuesto.toDoubleOrNull() ?: 0.0,
+
+                                            stockBajo =
+                                                cantidadInt <= stockMinimoInt,
 
                                             unidad = "",
 
@@ -431,7 +564,8 @@ fun CrearProductoScreen(
 
                                             costo = 0.0,
 
-                                            stockMinimo = 0,
+                                            stockMinimo =
+                                                stockMinimoInt,
 
                                             fechaIngreso = "",
 
