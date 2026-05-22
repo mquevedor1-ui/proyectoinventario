@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 
@@ -115,64 +116,85 @@ fun MenuPScreen(
 
         topBar = {
 
-            Row(
+            Column(
+
                 modifier = Modifier
                     .fillMaxWidth()
+                    .background(
+                        MaterialTheme.colorScheme.background
+                    )
                     .padding(
                         start = 16.dp,
                         end = 16.dp,
-                        top = 48.dp, // Bajamos el encabezado
+                        top = 48.dp,
                         bottom = 16.dp
-                    ),
-
-                horizontalArrangement =
-                    Arrangement.SpaceBetween,
-
-                verticalAlignment =
-                    Alignment.CenterVertically
+                    )
 
             ) {
 
-                Column(
+                // TITULOS
+
+                Text(
+
+                    text =
+                        "Sistema Inventario",
+
+                    fontSize = 26.sp,
+
+                    fontWeight =
+                        FontWeight.Bold,
+
+                    color =
+                        MaterialTheme
+                            .colorScheme
+                            .onBackground
+                )
+
+                Spacer(
+                    modifier = Modifier.height(4.dp)
+                )
+
+                Text(
+
+                    text =
+                        "Seleccione una bodega",
+
+                    fontSize = 14.sp,
+
+                    color =
+                        MaterialTheme
+                            .colorScheme
+                            .onBackground
+                            .copy(alpha = 0.7f)
+                )
+
+                Spacer(
+                    modifier = Modifier.height(16.dp)
+                )
+
+                // ICONOS
+
+                Row(
 
                     modifier =
-                        Modifier.weight(1f)
+                        Modifier.fillMaxWidth(),
+
+                    horizontalArrangement =
+                        Arrangement.End,
+
+                    verticalAlignment =
+                        Alignment.CenterVertically
 
                 ) {
-
-                    Text(
-
-                        text =
-                            "SISTEMA INVENTARIO",
-
-                        fontSize = 24.sp, // Más grande
-
-                        fontWeight =
-                            FontWeight.Bold
-                    )
-
-                    Text(
-
-                        text =
-                            "Seleccione bodega",
-
-                        fontSize = 16.sp, // Más grande
-
-                        color =
-                            MaterialTheme
-                                .colorScheme
-                                .onBackground
-                    )
-                }
-
-                Row {
 
                     // sincronizar
 
                     IconButton(
 
                         onClick = {
-                            bodegaViewModel.actualizarTodoDesdeNube()
+
+                            bodegaViewModel
+                                .actualizarTodoDesdeNube()
                         }
 
                     ) {
@@ -184,8 +206,6 @@ fun MenuPScreen(
 
                             contentDescription =
                                 "Sincronizar",
-
-                            modifier = Modifier.size(28.dp), // Un poquito más grande
 
                             tint =
                                 MaterialTheme
@@ -199,7 +219,10 @@ fun MenuPScreen(
                     IconButton(
 
                         onClick = {
-                            navController.navigate("configuracion")
+
+                            navController.navigate(
+                                "configuracion"
+                            )
                         }
 
                     ) {
@@ -212,8 +235,6 @@ fun MenuPScreen(
                             contentDescription =
                                 "Configuracion",
 
-                            modifier = Modifier.size(28.dp), // Un poquito más grande
-
                             tint =
                                 MaterialTheme
                                     .colorScheme
@@ -221,12 +242,78 @@ fun MenuPScreen(
                         )
                     }
 
+                    // crear usuarios
+
+                    if (SessionManager.esAdmin()) {
+
+                        IconButton(
+
+                            onClick = {
+
+                                navController.navigate(
+                                    "crearUsuario"
+                                )
+                            }
+
+                        ) {
+
+                            Icon(
+
+                                imageVector =
+                                    Icons.Default.PersonAdd,
+
+                                contentDescription =
+                                    "Crear Usuario",
+
+                                tint =
+                                    MaterialTheme
+                                        .colorScheme
+                                        .primary
+                            )
+                        }
+                    }
+
+                    // administrar usuarios
+
+                    if (SessionManager.esAdmin()) {
+
+                        IconButton(
+
+                            onClick = {
+
+                                navController.navigate(
+                                    "usuarios"
+                                )
+                            }
+
+                        ) {
+
+                            Icon(
+
+                                imageVector =
+                                    Icons.Default.Edit,
+
+                                contentDescription =
+                                    "Usuarios",
+
+                                tint =
+                                    MaterialTheme
+                                        .colorScheme
+                                        .primary
+                            )
+                        }
+                    }
+
                     // cerrar sesion
 
                     IconButton(
 
                         onClick = {
-                            navController.navigate("login") {
+
+                            navController.navigate(
+                                "login"
+                            ) {
+
                                 popUpTo(0)
                             }
                         }
@@ -240,8 +327,6 @@ fun MenuPScreen(
 
                             contentDescription =
                                 "Cerrar Sesion",
-
-                            modifier = Modifier.size(28.dp), // Un poquito más grande
 
                             tint =
                                 MaterialTheme
@@ -312,6 +397,7 @@ fun MenuPScreen(
                     ) {
 
                         if (SessionManager.esAdmin()) {
+
                             // editar
 
                             IconButton(
@@ -391,9 +477,6 @@ fun MenuPScreen(
 
                         ) {
 
-                            // icono
-
-                            // icono
                             Box(
                                 modifier = Modifier
                                     .size(80.dp)
@@ -417,8 +500,6 @@ fun MenuPScreen(
                                     Modifier.height(16.dp)
                             )
 
-                            // nombre
-
                             Text(
 
                                 text =
@@ -436,9 +517,6 @@ fun MenuPScreen(
                                     Modifier.height(8.dp)
                             )
 
-                            // descripcion
-
-                            // descripcion
                             Text(
                                 text = "Abrir bodega",
                                 fontSize = 13.sp,

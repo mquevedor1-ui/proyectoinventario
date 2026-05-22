@@ -1,8 +1,5 @@
 package com.example.inventario.ui.login
 
-
-
-
 import android.app.Application
 import android.widget.Toast
 
@@ -23,12 +20,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -38,10 +38,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 
 import androidx.compose.ui.Alignment
@@ -49,6 +49,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -57,8 +59,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 import androidx.navigation.NavController
 
-import com.example.inventario.viewModel.UsuarioViewModel
 import com.example.inventario.viewModel.SessionManager
+import com.example.inventario.viewModel.UsuarioViewModel
 
 import kotlinx.coroutines.launch
 
@@ -81,11 +83,11 @@ fun LoginScreen(
             )
     )
 
-    // estados
+    // admin o usuario
 
-    var isLogin by remember {
+    var loginAdmin by remember {
 
-        mutableStateOf(true)
+        mutableStateOf(false)
     }
 
     var usuario by remember {
@@ -98,9 +100,11 @@ fun LoginScreen(
         mutableStateOf("")
     }
 
-    var confirmPassword by remember {
+    // ojito contraseña
 
-        mutableStateOf("")
+    var passwordVisible by remember {
+
+        mutableStateOf(false)
     }
 
     Scaffold(
@@ -160,8 +164,6 @@ fun LoginScreen(
 
                     ) {
 
-                        // icono
-
                         Box(
 
                             modifier = Modifier
@@ -190,8 +192,6 @@ fun LoginScreen(
                             modifier = Modifier.height(10.dp)
                         )
 
-                        // titulo
-
                         Text(
 
                             text = "Sistema de Inventario",
@@ -206,19 +206,23 @@ fun LoginScreen(
 
                         Text(
 
-                            text = "Gestión de Bodegas",
+                            text =
+                                if (loginAdmin)
+                                    "Modo Administrador"
+                                else
+                                    "Modo Usuario",
 
                             fontSize = 12.sp,
 
                             color =
-                                MaterialTheme.colorScheme.onBackground
+                                MaterialTheme.colorScheme.primary
                         )
 
                         Spacer(
                             modifier = Modifier.height(16.dp)
                         )
 
-                        // botones login y registro
+                        // selector admin usuario
 
                         Row(
 
@@ -237,12 +241,12 @@ fun LoginScreen(
 
                                 onClick = {
 
-                                    isLogin = true
+                                    loginAdmin = false
                                 },
 
                                 colors = ButtonDefaults.buttonColors(
 
-                                    containerColor = if (isLogin)
+                                    containerColor = if (!loginAdmin)
 
                                         MaterialTheme.colorScheme.primary
 
@@ -259,9 +263,9 @@ fun LoginScreen(
 
                                 Text(
 
-                                    text = "Iniciar Sesión",
+                                    text = "Usuario",
 
-                                    color = if (isLogin)
+                                    color = if (!loginAdmin)
 
                                         MaterialTheme.colorScheme.onPrimary
 
@@ -275,12 +279,12 @@ fun LoginScreen(
 
                                 onClick = {
 
-                                    isLogin = false
+                                    loginAdmin = true
                                 },
 
                                 colors = ButtonDefaults.buttonColors(
 
-                                    containerColor = if (!isLogin)
+                                    containerColor = if (loginAdmin)
 
                                         MaterialTheme.colorScheme.primary
 
@@ -297,9 +301,9 @@ fun LoginScreen(
 
                                 Text(
 
-                                    text = "Crear Usuario",
+                                    text = "Administrador",
 
-                                    color = if (!isLogin)
+                                    color = if (loginAdmin)
 
                                         MaterialTheme.colorScheme.onPrimary
 
@@ -313,8 +317,6 @@ fun LoginScreen(
                         Spacer(
                             modifier = Modifier.height(16.dp)
                         )
-
-                        // usuario
 
                         OutlinedTextField(
 
@@ -348,8 +350,6 @@ fun LoginScreen(
                             modifier = Modifier.height(10.dp)
                         )
 
-                        // password
-
                         OutlinedTextField(
 
                             value = password,
@@ -366,6 +366,47 @@ fun LoginScreen(
 
                             modifier = Modifier.fillMaxWidth(),
 
+                            visualTransformation =
+
+                                if (passwordVisible)
+
+                                    VisualTransformation.None
+
+                                else
+
+                                    PasswordVisualTransformation(),
+
+                            trailingIcon = {
+
+                                val image =
+
+                                    if (passwordVisible)
+
+                                        Icons.Filled.Visibility
+
+                                    else
+
+                                        Icons.Filled.VisibilityOff
+
+                                IconButton(
+
+                                    onClick = {
+
+                                        passwordVisible =
+                                            !passwordVisible
+                                    }
+
+                                ) {
+
+                                    Icon(
+
+                                        imageVector = image,
+
+                                        contentDescription = null
+                                    )
+                                }
+                            },
+
                             colors = OutlinedTextFieldDefaults.colors(
 
                                 focusedBorderColor =
@@ -378,48 +419,9 @@ fun LoginScreen(
                             shape = RoundedCornerShape(12.dp)
                         )
 
-                        // confirmar password
-
-                        if (!isLogin) {
-
-                            Spacer(
-                                modifier = Modifier.height(10.dp)
-                            )
-
-                            OutlinedTextField(
-
-                                value = confirmPassword,
-
-                                onValueChange = {
-
-                                    confirmPassword = it
-                                },
-
-                                label = {
-
-                                    Text("Confirmar Contraseña")
-                                },
-
-                                modifier = Modifier.fillMaxWidth(),
-
-                                colors = OutlinedTextFieldDefaults.colors(
-
-                                    focusedBorderColor =
-                                        MaterialTheme.colorScheme.primary,
-
-                                    focusedLabelColor =
-                                        MaterialTheme.colorScheme.primary
-                                ),
-
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                        }
-
                         Spacer(
                             modifier = Modifier.height(16.dp)
                         )
-
-                        // boton entrar
 
                         Button(
 
@@ -445,70 +447,27 @@ fun LoginScreen(
 
                                 scope.launch {
 
-                                    // login
+                                    val user =
+                                        viewModel.login(
+                                            usuario,
+                                            password
+                                        )
 
-                                    if (isLogin) {
+                                    if (user != null) {
 
-                                        val user =
-                                            viewModel.login(
-                                                usuario,
-                                                password
-                                            )
-
-                                        if (user != null) {
-
-                                            // guardar sesion
-
-                                            SessionManager.login(user)
-
-                                            Toast.makeText(
-
-                                                context,
-
-                                                "Bienvenido ${user.user}",
-
-                                                Toast.LENGTH_SHORT
-
-                                            ).show()
-
-                                            // cambiado menu por bodegas
-
-                                            navController.navigate("menuP") {
-
-                                                popUpTo("login") {
-
-                                                    inclusive = true
-                                                }
-                                            }
-
-                                        } else {
-
-                                            Toast.makeText(
-
-                                                context,
-
-                                                "Usuario o contraseña incorrectos",
-
-                                                Toast.LENGTH_SHORT
-
-                                            ).show()
-                                        }
-
-                                    }
-
-                                    // registro
-
-                                    else {
+                                        // validar admin
 
                                         if (
-                                            password != confirmPassword
+                                            loginAdmin
+                                            &&
+                                            user.rol != "admin"
                                         ) {
 
                                             Toast.makeText(
 
                                                 context,
 
-                                                "Las contraseñas no coinciden",
+                                                "Este usuario no es administrador",
 
                                                 Toast.LENGTH_SHORT
 
@@ -517,42 +476,37 @@ fun LoginScreen(
                                             return@launch
                                         }
 
-                                        val ok =
-                                            viewModel.registrar(
-                                                usuario,
-                                                password
-                                            )
+                                        SessionManager.login(user)
 
-                                        if (ok) {
+                                        Toast.makeText(
 
-                                            Toast.makeText(
+                                            context,
 
-                                                context,
+                                            "Bienvenido ${user.user}",
 
-                                                "Usuario registrado",
+                                            Toast.LENGTH_SHORT
 
-                                                Toast.LENGTH_SHORT
+                                        ).show()
 
-                                            ).show()
+                                        navController.navigate("menuP") {
 
-                                            usuario = ""
-                                            password = ""
-                                            confirmPassword = ""
+                                            popUpTo("login") {
 
-                                            isLogin = true
-
-                                        } else {
-
-                                            Toast.makeText(
-
-                                                context,
-
-                                                "El usuario ya existe",
-
-                                                Toast.LENGTH_SHORT
-
-                                            ).show()
+                                                inclusive = true
+                                            }
                                         }
+
+                                    } else {
+
+                                        Toast.makeText(
+
+                                            context,
+
+                                            "Usuario o contraseña incorrectos",
+
+                                            Toast.LENGTH_SHORT
+
+                                        ).show()
                                     }
                                 }
                             },
@@ -571,10 +525,7 @@ fun LoginScreen(
 
                             Text(
 
-                                text = if (isLogin)
-                                    "Entrar"
-                                else
-                                    "Crear Cuenta",
+                                text = "Entrar",
 
                                 color =
                                     MaterialTheme.colorScheme.onPrimary
